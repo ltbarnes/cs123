@@ -49,7 +49,6 @@ protected:
 
 
 private:
-    void setBrush();
     RayScene *m_scene;
 
     //TODO: [BRUSH, INTERSECT, RAY] Put your member variables here.

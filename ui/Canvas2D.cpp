@@ -30,8 +30,6 @@ Canvas2D::Canvas2D()
     // @TODO: Initialize any pointers in this class here.
     m_scene = NULL;
 
-    setBrush();
-
 }
 
 Canvas2D::~Canvas2D()
@@ -80,6 +78,31 @@ void Canvas2D::mouseDown(int x, int y)
 
     bool fixAlphaBlending = settings.fixAlphaBlending; // for extra/half credit
 
+    switch (currentBrush) {
+    case BRUSH_SOLID:
+        m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
+        break;
+    case BRUSH_LINEAR:
+        m_brush = new LinearBrush(currentColor, currentFlow, currentRadius);
+        break;
+    case BRUSH_QUADRATIC:
+        m_brush = new QuadraticBrush(currentColor, currentFlow, currentRadius);
+        break;
+    case BRUSH_SMUDGE:
+        m_brush = new SmudgeBrush(currentColor, currentFlow, currentRadius);
+        break;
+    case BRUSH_SPECIAL_1:
+//        m_brush = new (currentColor, currentFlow, currentRadius);
+//        break;
+    case BRUSH_SPECIAL_2:
+//        m_brush = new (currentColor, currentFlow, currentRadius);
+//        break;
+    default:
+        m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
+        break;
+    }
+
+    m_brush->paintOnce(x, y, this);
 }
 
 void Canvas2D::mouseDragged(int x, int y)
@@ -143,30 +166,5 @@ void Canvas2D::cancelRender()
 void Canvas2D::settingsChanged() {
 
     // TODO: Process changes to the application settings.
-    delete m_brush;
-    setBrush();
-
-}
-
-void Canvas2D::setBrush() {
-
-    switch (settings.brushType) {
-    case BRUSH_SOLID:
-        cout << "solid" << endl;
-        break;
-    case BRUSH_LINEAR:
-        break;
-    case BRUSH_QUADRATIC:
-        break;
-    case BRUSH_SMUDGE:
-        break;
-    case BRUSH_SPECIAL_1:
-        break;
-    case BRUSH_SPECIAL_2:
-        break;
-    default:
-        cout << "default" << endl;
-        break;
-    }
 }
 

@@ -86,12 +86,23 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
     //
 
     BGRA* pix = canvas->data();
-    int size = canvas->width() * canvas->height();
-    for (int i = 0; i < size; ++i) {
-        pix[i].r = 255;
-        pix[i].g = 0;
-        pix[i].b = 0;
-        pix[i].a = 255;
+
+    int w = canvas->width();
+    int rowStart = MAX(0, mouse_y - m_radius);
+    int rowEnd = MIN(canvas->height(), mouse_y + m_radius);
+    int colStart = MAX(0, mouse_x - m_radius);
+    int colEnd = MIN(w, mouse_x + m_radius);
+
+    for (int r = rowStart; r < rowEnd; ++r) {
+        for (int c = colStart; c < colEnd; ++c) {
+            int i = w * r + c;
+//            int maskIndex =
+
+            pix[i].r = 255;
+            pix[i].g = 0;
+            pix[i].b = 0;
+            pix[i].a = 255;
+        }
     }
 
 }
