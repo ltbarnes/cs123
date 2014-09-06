@@ -29,6 +29,7 @@ Canvas2D::Canvas2D()
 {
     // @TODO: Initialize any pointers in this class here.
     m_scene = NULL;
+    m_brush = NULL;
 
 }
 
@@ -36,6 +37,8 @@ Canvas2D::~Canvas2D()
 {
     // @TODO: Be sure to release all memory that you allocate.
     delete m_scene;
+    if (m_brush)
+        delete m_brush;
 
 }
 
@@ -109,12 +112,14 @@ void Canvas2D::mouseDragged(int x, int y)
 {
     // TODO: [BRUSH] Mouse interaction for Brush.
 
+    m_brush->paintOnce(x, y, this);
 }
 
 void Canvas2D::mouseUp(int x, int y)
 {
     // TODO: [BRUSH] Mouse interaction for Brush.
-
+    delete m_brush;
+    m_brush = NULL;
 }
 
 

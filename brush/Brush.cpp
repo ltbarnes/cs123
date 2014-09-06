@@ -6,6 +6,7 @@
  * You should fill this file in while scompleting the Brush assignment.
  */
 
+#include <cmath>
 #include "Brush.h"
 #include "Canvas2D.h"
 
@@ -27,8 +28,8 @@ Brush::Brush(BGRA color, int flow, int radius) {
     m_color = color;
     m_flow = flow;
     m_radius = radius;
-    m_size = 4 * radius * radius;
-    m_mask = new float[m_size];
+    int diameter = 2 * radius + 1;
+    m_mask = new float[diameter * diameter];
 
 }
 
@@ -92,16 +93,20 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
     int rowEnd = MIN(canvas->height(), mouse_y + m_radius);
     int colStart = MAX(0, mouse_x - m_radius);
     int colEnd = MIN(w, mouse_x + m_radius);
+    int maskWidth = 2 * m_radius + 1;
 
-    for (int r = rowStart; r < rowEnd; ++r) {
-        for (int c = colStart; c < colEnd; ++c) {
-            int i = w * r + c;
-//            int maskIndex =
+    for (int r = rowStart; r <= rowEnd; ++r) {
+        for (int c = colStart; c <= colEnd; ++c) {
+            // canvas index
+            int ci = w * r + c;
+            // mask index
+            int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
+            float p = (m_flow / 255.f) * m_mask[mi];
 
-            pix[i].r = 255;
-            pix[i].g = 0;
-            pix[i].b = 0;
-            pix[i].a = 255;
+            pix[ci].r = pix[ci].r * (1 - p) + m_color.r * p;
+            pix[ci].g = pix[ci].g * (1 - p) + m_color.g * p;
+            pix[ci].b = pix[ci].b * (1 - p) + m_color.b * p;
+            pix[ci].a = 255;
         }
     }
 

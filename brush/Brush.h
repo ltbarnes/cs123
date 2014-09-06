@@ -50,7 +50,6 @@ protected:
     BGRA m_color;   // The color for the current brush.
     int m_flow;     // The flow setting of the brush.
     int m_radius;   // The radius setting of the brush.
-    int m_size;     // The mask array size;
 };
 
 

@@ -26,6 +26,21 @@ void LinearBrush::makeMask()
 {
     // @TODO: [BRUSH] Set up the mask for your Linear brush here...
 
+    int w = 2 * m_radius + 1;
+
+    // iterate through mask from -radius to +radius
+    for (int r = - m_radius; r <= m_radius; r++) {
+        for (int c = - m_radius; c <= m_radius; c++) {
+
+            // calculate the array index
+            int i = w * (r + m_radius) + (c + m_radius);
+
+            // create a linear mask
+            m_mask[i] = 1.f - (sqrt(r * r + c * c) / m_radius);
+            if (m_mask[i] < 0)
+                m_mask[i] = 0.f;
+        }
+    }
 }
 
 
