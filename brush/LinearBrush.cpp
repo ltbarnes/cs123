@@ -36,9 +36,13 @@ void LinearBrush::makeMask()
             int i = w * (r + m_radius) + (c + m_radius);
 
             // create a linear mask
-            m_mask[i] = 1.f - (sqrt(r * r + c * c) / m_radius);
-            if (m_mask[i] < 0)
-                m_mask[i] = 0.f;
+            float dist = sqrt(r * r + c * c);
+
+            if (dist< m_radius) {
+                m_mask[i] = (m_radius - dist) / m_radius;
+            } else {
+                m_mask[i] = 0;
+            }
         }
     }
 }

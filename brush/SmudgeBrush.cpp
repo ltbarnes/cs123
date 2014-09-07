@@ -53,10 +53,15 @@ void SmudgeBrush::makeMask()
             // calculate the array index
             int i = w * (r + m_radius) + (c + m_radius);
 
-            // create a linear mask
-            m_mask[i] = (1.f - (sqrt(r * r + c * c) / m_radius)) / 2.f;
-            if (m_mask[i] < 0)
-                m_mask[i] = 0.f;
+            // create a quadratic mask
+            float dist = sqrt(r * r + c * c);
+
+            if (dist< m_radius) {
+                float linear = (m_radius - dist) / m_radius;
+                m_mask[i] = linear * linear;
+            } else {
+                m_mask[i] = 0;
+            }
         }
     }
 }
@@ -120,10 +125,18 @@ void SmudgeBrush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
                 int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
                 float p = m_mask[mi];
 
-                pix[ci].r = pix[ci].r * (1 - p) + m_finger[mi].r * p;
-                pix[ci].g = pix[ci].g * (1 - p) + m_finger[mi].g * p;
-                pix[ci].b = pix[ci].b * (1 - p) + m_finger[mi].b * p;
+                // debug
+                if (p == 0.25f) {
+                    printf("display: %d, finger: %d\n", pix[ci].r, m_finger[mi].r);
+                    printf("display: %f, finger: %f", pix[ci].r * (1 - p), m_finger[mi].r * p);
+                    cout << endl;
+                }
+
+                pix[ci].r = pix[ci].r * (1.f - p) + (m_finger[mi].r * p);
+                pix[ci].g = pix[ci].g * (1.f - p) + (m_finger[mi].g * p);
+                pix[ci].b = pix[ci].b * (1.f - p) + (m_finger[mi].b * p);
                 pix[ci].a = 255;
+
             }
         }
     }

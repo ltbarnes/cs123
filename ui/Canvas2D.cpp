@@ -93,6 +93,7 @@ void Canvas2D::mouseDown(int x, int y)
         break;
     case BRUSH_SMUDGE:
         m_brush = new SmudgeBrush(currentColor, currentFlow, currentRadius);
+        m_brush->paintOnce(x, y, this);
         break;
     case BRUSH_SPECIAL_1:
 //        m_brush = new (currentColor, currentFlow, currentRadius);
@@ -104,12 +105,10 @@ void Canvas2D::mouseDown(int x, int y)
         m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
         break;
     }
-
-    m_brush->paintOnce(x, y, this);
 }
 
 void Canvas2D::mouseDragged(int x, int y)
-{
+{ 
     // TODO: [BRUSH] Mouse interaction for Brush.
 
     m_brush->paintOnce(x, y, this);

@@ -85,7 +85,6 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
     // Example: You'll want to delete or comment out this code, which
     // sets all the pixels on the canvas to red.
     //
-
     BGRA* pix = canvas->data();
 
     int w = canvas->width();
@@ -102,10 +101,13 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
             // mask index
             int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
             float p = (m_flow / 255.f) * m_mask[mi];
+            if (m_flow != 255.f) {
+                cout << "flow" << m_flow << endl;
+            }
 
-            pix[ci].r = pix[ci].r * (1 - p) + m_color.r * p;
-            pix[ci].g = pix[ci].g * (1 - p) + m_color.g * p;
-            pix[ci].b = pix[ci].b * (1 - p) + m_color.b * p;
+            pix[ci].r = pix[ci].r * (1.f - p) + (m_color.r * p);
+            pix[ci].g = pix[ci].g * (1.f - p) + (m_color.g * p);
+            pix[ci].b = pix[ci].b * (1.f - p) + (m_color.b * p);
             pix[ci].a = 255;
         }
     }
