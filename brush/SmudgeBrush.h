@@ -17,6 +17,9 @@ public:
 
 
 protected:
+    BGRA* m_finger;
+    int m_smudged;
+
     // Constructs the mask for this brush.
     void makeMask();
 
