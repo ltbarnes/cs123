@@ -81,9 +81,9 @@ void SmudgeBrush::pickUpPaint(int x, int y, Canvas2D* canvas)
 
     int w = canvas->width();
     int rowStart = std::max(0, y - m_radius);
-    int rowEnd = std::min(canvas->height(), y + m_radius);
+    int rowEnd = std::min(canvas->height() - 1, y + m_radius);
     int colStart = std::max(0, x - m_radius);
-    int colEnd = std::min(w, x + m_radius);
+    int colEnd = std::min(w - 1, x + m_radius);
     int maskWidth = 2 * m_radius + 1;
 
     for (int r = rowStart; r <= rowEnd; ++r) {
@@ -112,9 +112,9 @@ void SmudgeBrush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
 
         int w = canvas->width();
         int rowStart = std::max(0, mouse_y - m_radius);
-        int rowEnd = std::min(canvas->height(), mouse_y + m_radius);
+        int rowEnd = std::min(canvas->height() - 1, mouse_y + m_radius);
         int colStart = std::max(0, mouse_x - m_radius);
-        int colEnd = std::min(w, mouse_x + m_radius);
+        int colEnd = std::min(w - 1, mouse_x + m_radius);
         int maskWidth = 2 * m_radius + 1;
 
         for (int r = rowStart; r <= rowEnd; ++r) {
