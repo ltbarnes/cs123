@@ -2,6 +2,7 @@
 #define CANVAS2D_H
 
 #include "SupportCanvas2D.h"
+#include "brush/Brush.h"
 
 class RayScene;
 
@@ -51,7 +52,7 @@ private:
     RayScene *m_scene;
 
     //TODO: [BRUSH, INTERSECT, RAY] Put your member variables here.
-
+    Brush *m_brush;
 
 };
 
