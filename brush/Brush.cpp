@@ -28,8 +28,8 @@ Brush::Brush(BGRA color, int flow, int radius) {
     m_color = color;
     m_flow = flow;
     m_radius = radius;
-    int diameter = 2 * radius + 1;
-    m_mask = new float[diameter * diameter];
+    int width = 2 * radius + 1;
+    m_mask = new float[width * width];
 
 }
 
@@ -101,13 +101,10 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
             // mask index
             int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
             float p = (m_flow / 255.f) * m_mask[mi];
-            if (m_flow != 255.f) {
-                cout << "flow" << m_flow << endl;
-            }
 
-            pix[ci].r = pix[ci].r * (1.f - p) + (m_color.r * p);
-            pix[ci].g = pix[ci].g * (1.f - p) + (m_color.g * p);
-            pix[ci].b = pix[ci].b * (1.f - p) + (m_color.b * p);
+            pix[ci].r = (unsigned char) (pix[ci].r * (1.f - p) + (m_color.r * p) + 0.5f);
+            pix[ci].g = (unsigned char) (pix[ci].g * (1.f - p) + (m_color.g * p) + 0.5f);
+            pix[ci].b = (unsigned char) (pix[ci].b * (1.f - p) + (m_color.b * p) + 0.5f);
             pix[ci].a = 255;
         }
     }

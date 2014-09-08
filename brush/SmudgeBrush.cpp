@@ -60,7 +60,7 @@ void SmudgeBrush::makeMask()
                 float linear = (m_radius - dist) / m_radius;
                 m_mask[i] = linear * linear;
             } else {
-                m_mask[i] = 0;
+                m_mask[i] = 0.f;
             }
         }
     }
@@ -79,17 +79,16 @@ void SmudgeBrush::pickUpPaint(int x, int y, Canvas2D* canvas)
     //
     BGRA* pix = canvas->data();
 
-    int w = canvas->width();
     int rowStart = std::max(0, y - m_radius);
-    int rowEnd = std::min(canvas->height() - 1, y + m_radius);
+    int rowEnd = std::min(height - 1, y + m_radius);
     int colStart = std::max(0, x - m_radius);
-    int colEnd = std::min(w - 1, x + m_radius);
+    int colEnd = std::min(width - 1, x + m_radius);
     int maskWidth = 2 * m_radius + 1;
 
     for (int r = rowStart; r <= rowEnd; ++r) {
         for (int c = colStart; c <= colEnd; ++c) {
             // canvas index
-            int ci = w * r + c;
+            int ci = width * r + c;
             // mask index
             int mi = maskWidth * (r - y + m_radius) + (c - x + m_radius);
 
@@ -97,6 +96,7 @@ void SmudgeBrush::pickUpPaint(int x, int y, Canvas2D* canvas)
             m_finger[mi].g = pix[ci].g;
             m_finger[mi].b = pix[ci].b;
             m_finger[mi].a = 255;
+
         }
     }
 }
@@ -125,16 +125,9 @@ void SmudgeBrush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
                 int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
                 float p = m_mask[mi];
 
-                // debug
-                if (p == 0.25f) {
-                    printf("display: %d, finger: %d\n", pix[ci].r, m_finger[mi].r);
-                    printf("display: %f, finger: %f", pix[ci].r * (1 - p), m_finger[mi].r * p);
-                    cout << endl;
-                }
-
-                pix[ci].r = pix[ci].r * (1.f - p) + (m_finger[mi].r * p);
-                pix[ci].g = pix[ci].g * (1.f - p) + (m_finger[mi].g * p);
-                pix[ci].b = pix[ci].b * (1.f - p) + (m_finger[mi].b * p);
+                pix[ci].r = (unsigned char) (pix[ci].r * (1.f - p) + (m_finger[mi].r * p) + 0.5f);
+                pix[ci].g = (unsigned char) (pix[ci].g * (1.f - p) + (m_finger[mi].g * p) + 0.5f);
+                pix[ci].b = (unsigned char) (pix[ci].b * (1.f - p) + (m_finger[mi].b * p) + 0.5f);
                 pix[ci].a = 255;
 
             }
