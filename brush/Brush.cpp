@@ -30,7 +30,7 @@ Brush::Brush(BGRA color, int flow, int radius) {
     m_radius = radius;
     int width = 2 * radius + 1;
     m_mask = new float[width * width];
-
+    m_drawLayer = NULL;
 }
 
 
@@ -42,6 +42,8 @@ Brush::~Brush()
     //        i.e. delete[] m_mask;
     //
     delete[] m_mask;
+    if (m_drawLayer)
+        delete[] m_drawLayer;
 }
 
 
@@ -77,6 +79,21 @@ void Brush::setRadius(int radius)
 }
 
 
+void Brush:: setDrawLayer(Canvas2D *canvas)
+{
+    if (m_drawLayer) {
+        delete[] m_drawLayer;
+        m_drawLayer = NULL;
+    }
+    if (canvas) {
+        BGRA* pix = canvas->data();
+        int size = canvas->width() * canvas->height();
+        m_drawLayer = new BGRA[size];
+        std::copy(pix, pix+size, m_drawLayer);
+    }
+}
+
+
 void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
 {
     // @TODO: [BRUSH] You can do any painting on the canvas here. Or, you can
@@ -102,10 +119,19 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
             int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
             float p = (m_flow / 255.f) * m_mask[mi];
 
-            pix[ci].r = (unsigned char) (pix[ci].r * (1.f - p) + (m_color.r * p) + 0.5f);
-            pix[ci].g = (unsigned char) (pix[ci].g * (1.f - p) + (m_color.g * p) + 0.5f);
-            pix[ci].b = (unsigned char) (pix[ci].b * (1.f - p) + (m_color.b * p) + 0.5f);
-            pix[ci].a = 255;
+            if (m_drawLayer) {
+                if (p) {
+                    pix[ci].r = (unsigned char) (m_drawLayer[ci].r * (1.f - p) + (m_color.r * p) + 0.5f);
+                    pix[ci].g = (unsigned char) (m_drawLayer[ci].g * (1.f - p) + (m_color.g * p) + 0.5f);
+                    pix[ci].b = (unsigned char) (m_drawLayer[ci].b * (1.f - p) + (m_color.b * p) + 0.5f);
+                    pix[ci].a = 255;
+                }
+            } else {
+                pix[ci].r = (unsigned char) (pix[ci].r * (1.f - p) + (m_color.r * p) + 0.5f);
+                pix[ci].g = (unsigned char) (pix[ci].g * (1.f - p) + (m_color.g * p) + 0.5f);
+                pix[ci].b = (unsigned char) (pix[ci].b * (1.f - p) + (m_color.b * p) + 0.5f);
+                pix[ci].a = 255;
+            }
         }
     }
 

@@ -36,6 +36,8 @@ public:
     // Set the radius of the brush.
     void setRadius(int radius);
 
+    void setDrawLayer(Canvas2D* canvas) ;
+
     // Apply the brush one time to the given canvas centered at (x,y)
     virtual void paintOnce(int x, int y, Canvas2D* canvas);
 
@@ -50,6 +52,7 @@ protected:
     BGRA m_color;   // The color for the current brush.
     int m_flow;     // The flow setting of the brush.
     int m_radius;   // The radius setting of the brush.
+    BGRA* m_drawLayer;
 };
 
 

@@ -9,7 +9,7 @@
  * Constant brush with equal mask distribution in a circle.
  */
 class ConstantBrush
-    : public Brush
+        : public Brush
 {
 
 public:
