@@ -24,12 +24,15 @@
 #include "brush/LinearBrush.h"
 #include "brush/QuadraticBrush.h"
 #include "brush/SmudgeBrush.h"
+#include "brush/BombBrush.h"
+#include "brush/BubblerBrush.h"
 
 Canvas2D::Canvas2D()
 {
     // @TODO: Initialize any pointers in this class here.
     m_scene = NULL;
     m_brush = NULL;
+    m_timer = 0;
 
 }
 
@@ -55,6 +58,7 @@ void Canvas2D::paintEvent(QPaintEvent *e) {
     SupportCanvas2D::paintEvent(e);
 
 }
+
 
 // ********************************************************************************************
 // ** BRUSH
@@ -102,11 +106,19 @@ void Canvas2D::mouseDown(int x, int y)
         m_brush->paintOnce(x, y, this);
         break;
     case BRUSH_SPECIAL_1:
-//        m_brush = new (currentColor, currentFlow, currentRadius);
-//        break;
+        m_brush = new BombBrush(currentColor, currentFlow, currentRadius);
+        m_brush->paintOnce(x, y, this);
+        m_timer = startTimer(33); // ~30fps
+        break;
     case BRUSH_SPECIAL_2:
-//        m_brush = new (currentColor, currentFlow, currentRadius);
-//        break;
+        m_brush = new BubblerBrush(currentColor, currentFlow, currentRadius);
+
+        if (fixAlphaBlending) {
+            m_brush->setDrawLayer(this);
+        } else {
+            m_brush->setDrawLayer(NULL);
+        }
+        break;
     default:
         m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
         break;
@@ -126,9 +138,18 @@ void Canvas2D::mouseUp(int x, int y)
     // TODO: [BRUSH] Mouse interaction for Brush.
     delete m_brush;
     m_brush = NULL;
+    if (m_timer) {
+        killTimer(m_timer);
+        m_timer = 0;
+    }
 }
 
 
+void Canvas2D::timerEvent(QTimerEvent *)
+{
+    m_brush->update();
+    cout << "tick" << m_timer << endl;
+}
 
 // ********************************************************************************************
 // ** FILTER

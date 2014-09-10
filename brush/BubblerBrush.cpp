@@ -1,33 +1,28 @@
 /**
-  * @file   BombBrush.cpp
+  * @file   BubblerBrush.cpp
   *
   * Implementation of a brush which 'throws' paint accross the canvas
   */
 
 #include <CS123Common.h>
 
-#include "BombBrush.h"
+#include "BubblerBrush.h"
 #include "Canvas2D.h"
 
-BombBrush::BombBrush(BGRA color, int flow, int radius)
+BubblerBrush::BubblerBrush(BGRA color, int flow, int radius)
     : Brush(color, flow, radius)
 {
     makeMask();
-    int width = 2 * m_radius + 1;
-    m_bomb = new BGRA[width * width];
-    m_blown = 0;
-    m_background = NULL;
+    m_used = 0;
 }
 
 
-BombBrush::~BombBrush()
+BubblerBrush::~BubblerBrush()
 {
-    delete[] m_bomb;
-    if (m_background)
-        delete[] m_background;
+
 }
 
-void BombBrush::makeMask()
+void BubblerBrush::makeMask()
 {
     int w = 2 * m_radius + 1;
 
@@ -43,8 +38,7 @@ void BombBrush::makeMask()
 
             if (dist< m_radius) {
                 float linear = (m_radius - dist) / m_radius;
-                float quad = linear * linear;
-                m_mask[i] = 2 * quad - quad * quad;
+                m_mask[i] = (linear * linear) - (2 * linear);
             } else {
                 m_mask[i] = 0.f;
             }
@@ -53,8 +47,14 @@ void BombBrush::makeMask()
 }
 
 
-void BombBrush::pickUpPaint(int x, int y, Canvas2D* canvas)
+void BubblerBrush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
 {
+
+    if (m_used) {
+        return;
+    }
+    m_used = 1;
+
     int width = canvas->width();
     int height = canvas->height();
 
@@ -65,10 +65,10 @@ void BombBrush::pickUpPaint(int x, int y, Canvas2D* canvas)
     //
     BGRA* pix = canvas->data();
 
-    int rowStart = std::max(0, y - m_radius);
-    int rowEnd = std::min(height - 1, y + m_radius);
-    int colStart = std::max(0, x - m_radius);
-    int colEnd = std::min(width - 1, x + m_radius);
+    int rowStart = std::max(0, mouse_y - m_radius);
+    int rowEnd = std::min(height - 1, mouse_y + m_radius);
+    int colStart = std::max(0, mouse_x - m_radius);
+    int colEnd = std::min(width - 1, mouse_x + m_radius);
     int maskWidth = 2 * m_radius + 1;
 
     for (int r = rowStart; r <= rowEnd; ++r) {
@@ -76,33 +76,12 @@ void BombBrush::pickUpPaint(int x, int y, Canvas2D* canvas)
             // canvas index
             int ci = width * r + c;
             // mask index
-            int mi = maskWidth * (r - y + m_radius) + (c - x + m_radius);
+            int mi = maskWidth * (r - mouse_y + m_radius) + (c - mouse_x + m_radius);
 
-            m_bomb[mi].r = pix[ci].r;
-            m_bomb[mi].g = pix[ci].g;
-            m_bomb[mi].b = pix[ci].b;
-            m_bomb[mi].a = 255;
-
-            pix[ci].r = (unsigned char) (pix[ci].r * (1.f - m_mask[mi]));
-            pix[ci].g = (unsigned char) (pix[ci].g * (1.f - m_mask[mi]));
-            pix[ci].b = (unsigned char) (pix[ci].b * (1.f - m_mask[mi]));
+            pix[ci].r = (unsigned char) (pix[ci].r * (1.f - m_mask[mi]) + 0.5f);
+            pix[ci].g = (unsigned char) (pix[ci].g * (1.f - m_mask[mi]) + 0.5f);
+            pix[ci].b = (unsigned char) (pix[ci].b * (1.f - m_mask[mi]) + 0.5f);
             pix[ci].a = 255;
         }
-    }
-}
-
-void BombBrush::update()
-{
-
-}
-
-
-void BombBrush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
-{
-
-    // now pick up paint again...
-    if (!m_blown) {
-        pickUpPaint(mouse_x, mouse_y, canvas);
-        m_blown = 1;
     }
 }

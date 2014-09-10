@@ -14,7 +14,6 @@ public:
     // Each row is width() wide and there are height() rows, so this array will have
     // width() * height() elements.
     BGRA *data() { return (BGRA *)m_image->bits(); }
-    BGRA *drawLayer() { return (BGRA *)m_image->bits(); }
 
     // Resize the canvas (this will resize the window too and set the image to black)
     void resize(int width, int height);

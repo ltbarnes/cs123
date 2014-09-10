@@ -41,6 +41,8 @@ public:
     // Apply the brush one time to the given canvas centered at (x,y)
     virtual void paintOnce(int x, int y, Canvas2D* canvas);
 
+    virtual void update();
+
 
 protected:
     // Pure virtual function that will create the mask distribution.

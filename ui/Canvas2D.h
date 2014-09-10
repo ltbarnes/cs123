@@ -46,7 +46,7 @@ protected:
     // Called when the size of the canvas has been changed
     virtual void notifySizeChanged(int w, int h);
 
-
+    virtual void timerEvent(QTimerEvent *);
 
 private:
     RayScene *m_scene;
@@ -54,6 +54,7 @@ private:
     //TODO: [BRUSH, INTERSECT, RAY] Put your member variables here.
     Brush *m_brush;
 
+    int m_timer;
 };
 
 #endif // CANVAS2D_H

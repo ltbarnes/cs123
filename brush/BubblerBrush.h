@@ -1,34 +1,29 @@
-#ifndef BOMBBRUSH_H
-#define BOMBBRUSH_H
+#ifndef BUBBLERBRUSH_H
+#define BUBBLERBRUSH_H
+
 
 #include "Brush.h"
 
 /**
- * @class BombBrush
+ * @class BubblerBrush
  *
  * Brush that takes any paint at the current location and
  * throws it to other parts of the canvas.
  */
-class BombBrush
+class BubblerBrush
         : public Brush
 {
 
 public:
-    BombBrush(BGRA color, int flow, int radius);
-    virtual ~BombBrush();
+    BubblerBrush(BGRA color, int flow, int radius);
+    virtual ~BubblerBrush();
 
 protected:
-    BGRA* m_background;
-    BGRA* m_bomb;
-    int m_blown;
+    int m_used;
 
     void makeMask(); // Constructs the mask for this brush.
-
-    void pickUpPaint(int x, int y, Canvas2D* canvas);
-
-    virtual void update();
 
     virtual void paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas);
 };
 
-#endif // BOMBBRUSH_H
+#endif // BUBBLERBRUSH_H
