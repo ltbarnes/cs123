@@ -94,8 +94,8 @@ void BombBrush::blowUp(int x, int y, Canvas2D* canvas)
         m_bomb[i].dy = sin(horizAngle) * horizVel;
         m_bomb[i].dh = vertVel;
 
-        int r = rand() % (rowEnd - rowStart) + y - m_radius;
-        int c = rand() % (colEnd - colStart) + x - m_radius;
+        int r = rand() % (rowEnd - rowStart) + rowStart;
+        int c = rand() % (colEnd - colStart) + colStart;
         int ci = width * r + c;
 
         m_bomb[i].color.r = pix[ci].r;
@@ -200,8 +200,6 @@ void BombBrush::renderAnimation(Canvas2D *canvas)
             }
         }
         // make it pretty
-//        if (m_bomb[i].h <= 0)
-//            continue;
         int lr = r - (h / 3.f + 0.5f);
         int lc = c - (h / 3.f + 0.5f);
         if (lr >= width || lc >= height || lr < 0 || lc < 0)
