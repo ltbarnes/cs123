@@ -3,6 +3,17 @@
 
 #include "Brush.h"
 
+
+struct frag {
+    float x;
+    float y;
+    float h;
+    float dx;
+    float dy;
+    float dh;
+    BGRA color;
+};
+
 /**
  * @class BombBrush
  *
@@ -18,17 +29,25 @@ public:
     virtual ~BombBrush();
 
 protected:
-    BGRA* m_background;
-    BGRA* m_bomb;
+    frag* m_bomb;
     int m_blown;
 
     void makeMask(); // Constructs the mask for this brush.
 
-    void pickUpPaint(int x, int y, Canvas2D* canvas);
+    void blowUp(int x, int y, Canvas2D* canvas);
 
     virtual void update();
 
+    virtual void renderAnimation(Canvas2D *canvas);
+
     virtual void paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas);
+
+private:
+    int m_bombRadius;
+    int m_bombWidth;
+    int m_bombSize;
+
+    int m_maxHeight;
 };
 
 #endif // BOMBBRUSH_H

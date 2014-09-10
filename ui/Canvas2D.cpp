@@ -86,15 +86,6 @@ void Canvas2D::mouseDown(int x, int y)
     bool fixAlphaBlending = settings.fixAlphaBlending; // for extra/half credit
 
     switch (currentBrush) {
-    case BRUSH_SOLID:
-        m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
-
-        if (fixAlphaBlending) {
-            m_brush->setDrawLayer(this);
-        } else {
-            m_brush->setDrawLayer(NULL);
-        }
-        break;
     case BRUSH_LINEAR:
         m_brush = new LinearBrush(currentColor, currentFlow, currentRadius);
         break;
@@ -108,19 +99,20 @@ void Canvas2D::mouseDown(int x, int y)
     case BRUSH_SPECIAL_1:
         m_brush = new BombBrush(currentColor, currentFlow, currentRadius);
         m_brush->paintOnce(x, y, this);
-        m_timer = startTimer(33); // ~30fps
+        m_brush->setDrawLayer(this);
+        m_timer = startTimer(20); // 50fps
         break;
     case BRUSH_SPECIAL_2:
         m_brush = new BubblerBrush(currentColor, currentFlow, currentRadius);
+        break;
+    default: // BRUSH_SOLID
+        m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
 
         if (fixAlphaBlending) {
             m_brush->setDrawLayer(this);
         } else {
             m_brush->setDrawLayer(NULL);
         }
-        break;
-    default:
-        m_brush = new ConstantBrush(currentColor, currentFlow, currentRadius);
         break;
     }
 
@@ -148,7 +140,8 @@ void Canvas2D::mouseUp(int x, int y)
 void Canvas2D::timerEvent(QTimerEvent *)
 {
     m_brush->update();
-    cout << "tick" << m_timer << endl;
+    m_brush->renderAnimation(this);
+    this->repaint();
 }
 
 // ********************************************************************************************

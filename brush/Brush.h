@@ -43,6 +43,8 @@ public:
 
     virtual void update();
 
+    virtual void renderAnimation(Canvas2D *canvas);
+
 
 protected:
     // Pure virtual function that will create the mask distribution.
