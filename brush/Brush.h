@@ -41,7 +41,7 @@ public:
     // Apply the brush one time to the given canvas centered at (x,y)
     virtual void paintOnce(int x, int y, Canvas2D* canvas);
 
-    virtual void update();
+    virtual void update(bool lastUpdate);
 
     virtual void renderAnimation(Canvas2D *canvas);
 

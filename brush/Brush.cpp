@@ -137,7 +137,7 @@ void Brush::paintOnce(int mouse_x, int mouse_y, Canvas2D* canvas)
 
 }
 
-void Brush::update()
+void Brush::update(bool lastUpdate)
 {
 
 }

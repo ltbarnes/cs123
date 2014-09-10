@@ -191,14 +191,14 @@
         <item>
          <widget class="QRadioButton" name="brushTypeSpecial1">
           <property name="text">
-           <string>Special 1</string>
+           <string>Special 1 (Paint Bomb)</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QRadioButton" name="brushTypeSpecial2">
           <property name="text">
-           <string>Special 2</string>
+           <string>Special 2 (Bubbler)</string>
           </property>
          </widget>
         </item>

@@ -36,7 +36,7 @@ protected:
 
     void blowUp(int x, int y, Canvas2D* canvas);
 
-    virtual void update();
+    virtual void update(bool lastUpdate);
 
     virtual void renderAnimation(Canvas2D *canvas);
 
@@ -48,6 +48,10 @@ private:
     int m_bombSize;
 
     int m_maxHeight;
+
+    float m_accel;
+    float m_vel;
+    float m_time;
 };
 
 #endif // BOMBBRUSH_H

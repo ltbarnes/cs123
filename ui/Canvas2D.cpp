@@ -128,18 +128,21 @@ void Canvas2D::mouseDragged(int x, int y)
 void Canvas2D::mouseUp(int x, int y)
 {
     // TODO: [BRUSH] Mouse interaction for Brush.
-    delete m_brush;
-    m_brush = NULL;
     if (m_timer) {
         killTimer(m_timer);
         m_timer = 0;
+        m_brush->update(true);
+        m_brush->renderAnimation(this);
     }
+
+    delete m_brush;
+    m_brush = NULL;
 }
 
 
 void Canvas2D::timerEvent(QTimerEvent *)
 {
-    m_brush->update();
+    m_brush->update(false);
     m_brush->renderAnimation(this);
     this->repaint();
 }
