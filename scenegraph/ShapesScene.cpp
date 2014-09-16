@@ -49,8 +49,10 @@ void ShapesScene::init()
 
     OpenGLScene::init(); // Call the superclass's init()
 
-    if (m_shape)
+    if (m_shape) {
         delete m_shape;
+        m_shape = NULL;
+    }
 
     switch (settings.shapeType) {
     case SHAPE_CUBE:
@@ -91,7 +93,8 @@ void ShapesScene::renderGeometry()
     applyMaterial(m_material);
 
     // Draw the shape.
-    m_shape->render();
+    if (m_shape)
+        m_shape->render();
 
 }
 

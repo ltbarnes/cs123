@@ -2,11 +2,11 @@
 
 Shape::Shape()
 {
-    m_p1 = 15;
-    m_p2 = 15;
-    m_radius = 0.5f;
-    m_numVerts = 6;
-    m_vertexData = NULL;
+//    m_p1 = 15;
+//    m_p2 = 15;
+//    m_radius = 0.5f;
+//    m_numVerts = 6;
+//    m_vertexData = NULL;
 }
 
 Shape::~Shape()
@@ -32,15 +32,15 @@ void Shape::setParam2(int param2)
 
 void Shape::calcVerts()
 {
-    int size = m_numVerts * 3;
-    m_vertexData = new GLfloat[size];
+//    int size = m_numVerts * 3;
+//    m_vertexData = new GLfloat[size];
 
-    int index = 0;
-    glm::vec3 norm = glm::vec3(0, 0, 1);
+//    int index = 0;
+//    glm::vec3 norm = glm::vec3(0, 0, 1);
 
-    addVertex(&index, glm::vec3(-1, -1, 0), norm);
-    addVertex(&index, glm::vec3(1, -1, 0), norm);
-    addVertex(&index, glm::vec3(0, 1, 0), norm);
+//    addVertex(&index, glm::vec3(-1, -1, 0), norm);
+//    addVertex(&index, glm::vec3(1, -1, 0), norm);
+//    addVertex(&index, glm::vec3(0, 1, 0), norm);
 }
 
 
