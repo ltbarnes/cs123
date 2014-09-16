@@ -51,7 +51,7 @@ void Shape::calcVerts()
 }
 
 
-void Shape::updateGL()
+void Shape::updateGL(GLuint shader)
 {
     // Initialize the vertex array object.
     glGenVertexArrays(1, &m_vaoID);
@@ -63,6 +63,28 @@ void Shape::updateGL()
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
     glBufferData(GL_ARRAY_BUFFER, 3 * m_numVerts * sizeof(GLfloat), m_vertexData, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(glGetAttribLocation(shader, "position"));
+    glVertexAttribPointer(
+        glGetAttribLocation(shader, "position"),
+        3,                   // Num coordinates per position
+        GL_FLOAT,            // Type
+        GL_FALSE,            // Normalized
+        sizeof(GLfloat) * 6, // Stride
+        (void*) 0            // Array buffer offset
+    );
+    glEnableVertexAttribArray(glGetAttribLocation(shader, "normal"));
+    glVertexAttribPointer(
+        glGetAttribLocation(shader, "normal"),
+        3,                              // Num coordinates per normal
+        GL_FLOAT,                       // Type
+        GL_TRUE,                        // Normalized
+        sizeof(GLfloat) * 6,            // Stride
+        (void*) (sizeof(GLfloat) * 3)   // Array buffer offset
+    );
+
+    // Unbind buffers.
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 void Shape::updateNormals(NormalRenderer *normRenderer)

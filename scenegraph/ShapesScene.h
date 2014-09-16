@@ -46,7 +46,6 @@ private:
     CS123SceneLightData  m_light;
     CS123SceneMaterial   m_material;
 
-    GLuint m_vaoID; // The vertex array object ID, which is passed to glBindVertexArray.
     Shape *m_shape;
 };
 

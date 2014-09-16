@@ -11,7 +11,7 @@ public:
 
     void setParam1(int param1);
     void setParam2(int param2);
-    void updateGL();
+    void updateGL(GLuint shader);
     void updateNormals(NormalRenderer *normRenderer);
     void cleanUp();
 
@@ -20,7 +20,7 @@ public:
 
 protected:
 
-    GLuint m_vaoID;
+    GLuint m_vaoID; // The vertex array object ID, which is passed to glBindVertexArray.
     GLfloat *m_vertexData;
 
     int m_p1;
