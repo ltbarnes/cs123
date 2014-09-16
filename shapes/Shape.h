@@ -1,0 +1,32 @@
+#ifndef SHAPE_H
+#define SHAPE_H
+
+#include "OpenGLScene.h"
+
+class Shape
+{
+public:
+    Shape();
+    virtual ~Shape();
+
+    void setParam1(int param1);
+    void setParam2(int param2);
+    void updateGL();
+    void updateNormals(NormalRenderer *normRenderer);
+    void cleanUp();
+
+    virtual void calcVerts();
+    virtual void render();
+
+protected:
+
+    GLuint m_vaoID;
+    GLfloat *m_vertexData;
+
+    int m_p1;
+    int m_p2;
+    float m_radius;
+    int m_numVerts;
+};
+
+#endif // SHAPE_H

@@ -3,7 +3,7 @@
 
 #include "OpenGLScene.h"
 #include "Settings.h"
-
+#include "shapes/Shape.h"
 
 /**
  *
@@ -33,7 +33,7 @@ public:
 
 protected:
     // Set the light uniforms for the lights in the scene. (The view matrix is used so that the
-    // light can follows the camera.)
+    // light can follow the camera.)
     virtual void setLights(const glm::mat4 viewMatrix);
 
     // Render geometry for Shapes and Sceneview.
@@ -47,7 +47,7 @@ private:
     CS123SceneMaterial   m_material;
 
     GLuint m_vaoID; // The vertex array object ID, which is passed to glBindVertexArray.
-
+    Shape *m_shape;
 };
 
 #endif // SHAPESSCENE_H

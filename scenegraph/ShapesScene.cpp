@@ -3,6 +3,7 @@
 #include <SupportCanvas3D.h>
 #include <QFileDialog>
 
+#define SHAPE_RADIUS 0.5f
 
 glm::vec4 lightDirection = glm::normalize(glm::vec4(1.f, -1.f, -1.f, 0.f));
 
@@ -25,13 +26,14 @@ ShapesScene::ShapesScene()
     m_light.id = 0;
 
     //TODO: [SHAPES] Allocate any additional memory you need...
-
+    m_shape = NULL;
 }
 
 ShapesScene::~ShapesScene()
 {
     // TODO: [SHAPES] Don't leak memory!
-
+    if (m_shape)
+        delete m_shape;
 }
 
 void ShapesScene::init()
@@ -46,29 +48,57 @@ void ShapesScene::init()
 
     OpenGLScene::init(); // Call the superclass's init()
 
-    // Initialize the vertex array object.
-    glGenVertexArrays(1, &m_vaoID);
-    glBindVertexArray(m_vaoID);
+    switch (settings.shapeType) {
+    case SHAPE_CUBE:
+//        m_shape = new Cube(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    case SHAPE_CONE:
+//        m_shape = new Cone(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    case SHAPE_SPHERE:
+//        m_shape = new Sphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    case SHAPE_CYLINDER:
+//        m_shape = new Cylinder(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    case SHAPE_SPECIAL_1:
+//        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    case SHAPE_SPECIAL_2:
+//        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    case SHAPE_SPECIAL_3:
+//        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+//        break;
+    default: // basic triangle shape
+        m_shape = new Shape();
+        break;
+    }
+//    // Initialize the vertex array object.
+//    glGenVertexArrays(1, &m_vaoID);
+//    glBindVertexArray(m_vaoID);
 
-    // Initialize the vertex buffer object.
-    GLuint vertexBuffer;
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+//    // Initialize the vertex buffer object.
+//    GLuint vertexBuffer;
+//    glGenBuffers(1, &vertexBuffer);
+//    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
-    // Remember for large arrays you should use new
-    GLfloat vertexData[] = {
-        -1, -1, 0, // Position 1
-        0,  0, 1, // Normal 1
-        1, -1, 0, // Position 2
-        0,  0, 1, // Normal 2
-        0, 1, 0,  // Position 3
-        0, 0, 1   // Normal 3
-   };
+//    // Remember for large arrays you should use new
+//    GLfloat vertexData[] = {
+//        -1, -1, 0, // Position 1
+//        0,  0, 1, // Normal 1
+//        1, -1, 0, // Position 2
+//        0,  0, 1, // Normal 2
+//        0, 1, 0,  // Position 3
+//        0, 0, 1   // Normal 3
+//   };
 
-   // Pass vertex data to OpenGL.
-   glBufferData(GL_ARRAY_BUFFER, 3 * 6 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
+    m_shape->calcVerts();
+    m_shape->updateGL();
+
+//   // Pass vertex data to OpenGL.
+//   glBufferData(GL_ARRAY_BUFFER, 3 * 6 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
    glEnableVertexAttribArray(glGetAttribLocation(m_shader, "position"));
-   glEnableVertexAttribArray(glGetAttribLocation(m_shader, "normal"));
    glVertexAttribPointer(
        glGetAttribLocation(m_shader, "position"),
        3,                   // Num coordinates per position
@@ -77,6 +107,7 @@ void ShapesScene::init()
        sizeof(GLfloat) * 6, // Stride
        (void*) 0            // Array buffer offset
    );
+   glEnableVertexAttribArray(glGetAttribLocation(m_shader, "normal"));
    glVertexAttribPointer(
        glGetAttribLocation(m_shader, "normal"),
        3,           // Num coordinates per normal
@@ -90,19 +121,22 @@ void ShapesScene::init()
    glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
 
+    m_shape->updateNormals(m_normalRenderer);
+    m_shape->cleanUp();
     // Initialize normals so they can be displayed with arrows. (This can be very helpful
     // for debugging!)
     // This object (m_normalRenderer) can be passed around to other classes,
     // make sure to include "OpenGLScene.h" in any class you want to use the NormalRenderer!
     // generateArrays will take care of any cleanup from the previous object state.
-    m_normalRenderer->generateArrays(
-                vertexData,             // Pointer to vertex data
-                6 * sizeof(GLfloat),    // Stride (distance between consecutive vertices/normals in BYTES
-                0,                      // Offset of first position in BYTES
-                3 * sizeof(GLfloat),    // Offset of first normal in BYTES
-                3);                     // Number of vertices
+//    m_normalRenderer->generateArrays(
+//                vertexData,             // Pointer to vertex data
+//                6 * sizeof(GLfloat),    // Stride (distance between consecutive vertices/normals in BYTES
+//                0,                      // Offset of first position in BYTES
+//                3 * sizeof(GLfloat),    // Offset of first normal in BYTES
+//                3);                     // Number of vertices
 
     // Don't forget to clean up any resources you created
+//    delete vertexData;
 }
 
 void ShapesScene::renderGeometry()
@@ -112,10 +146,11 @@ void ShapesScene::renderGeometry()
 
     applyMaterial(m_material);
 
-    // Draw the shape.
-    glBindVertexArray(m_vaoID);
-    glDrawArrays(GL_TRIANGLES, 0, 3 /* Number of vertices to draw */);
-    glBindVertexArray(0);
+//    // Draw the shape.
+//    glBindVertexArray(m_vaoID);
+//    glDrawArrays(GL_TRIANGLES, 0, 3 /* Number of vertices to draw */);
+//    glBindVertexArray(0);
+    m_shape->render();
 
 }
 
