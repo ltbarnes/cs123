@@ -11,7 +11,7 @@ Shape::Shape()
 
 Shape::~Shape()
 {
-
+    cleanUp();
 }
 
 
@@ -35,19 +35,23 @@ void Shape::calcVerts()
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
-    // Remember for large arrays you should use new
-    GLfloat temp[]  = {
-       -1, -1, 0, // Position 1
-        0,  0, 1, // Normal 1
-        1, -1, 0, // Position 2
-        0,  0, 1, // Normal 2
-        0, 1, 0,  // Position 3
-        0, 0, 1   // Normal 3
-    };
+    int index = 0;
+    glm::vec3 norm = glm::vec3(0, 0, 1);
 
-    for (int i = 0; i < size; i++) {
-        m_vertexData[i] = temp[i];
-    }
+    addVertex(&index, glm::vec3(-1, -1, 0), norm);
+    addVertex(&index, glm::vec3(1, -1, 0), norm);
+    addVertex(&index, glm::vec3(0, 1, 0), norm);
+}
+
+
+void Shape::addVertex(int *i, glm::vec3 v, glm::vec3 norm)
+{
+    m_vertexData[(*i)++] = v.x;
+    m_vertexData[(*i)++] = v.y;
+    m_vertexData[(*i)++] = v.z;
+    m_vertexData[(*i)++] = norm.x;
+    m_vertexData[(*i)++] = norm.y;
+    m_vertexData[(*i)++] = norm.z;
 }
 
 
@@ -109,7 +113,7 @@ void Shape::cleanUp()
 void Shape::render()
 {
         glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLES, 0, 3 /* Number of vertices to draw */);
+        glDrawArrays(GL_TRIANGLES, 0, m_numVerts / 2 /* Number of vertices to draw */);
         glBindVertexArray(0);
 }
 

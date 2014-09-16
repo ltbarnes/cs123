@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include <SupportCanvas3D.h>
 #include <QFileDialog>
+#include "shapes/Cube.h"
 
 #define SHAPE_RADIUS 0.5f
 
@@ -48,10 +49,13 @@ void ShapesScene::init()
 
     OpenGLScene::init(); // Call the superclass's init()
 
+    if (m_shape)
+        delete m_shape;
+
     switch (settings.shapeType) {
     case SHAPE_CUBE:
-//        m_shape = new Cube(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new Cube(settings.shapeParameter1, SHAPE_RADIUS);
+        break;
     case SHAPE_CONE:
 //        m_shape = new Cone(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
 //        break;
@@ -77,30 +81,6 @@ void ShapesScene::init()
 
     m_shape->calcVerts();
     m_shape->updateGL(m_shader);
-
-//   glEnableVertexAttribArray(glGetAttribLocation(m_shader, "position"));
-//   glVertexAttribPointer(
-//       glGetAttribLocation(m_shader, "position"),
-//       3,                   // Num coordinates per position
-//       GL_FLOAT,            // Type
-//       GL_FALSE,            // Normalized
-//       sizeof(GLfloat) * 6, // Stride
-//       (void*) 0            // Array buffer offset
-//   );
-//   glEnableVertexAttribArray(glGetAttribLocation(m_shader, "normal"));
-//   glVertexAttribPointer(
-//       glGetAttribLocation(m_shader, "normal"),
-//       3,           // Num coordinates per normal
-//       GL_FLOAT,    // Type
-//       GL_TRUE,     // Normalized
-//       sizeof(GLfloat) * 6,           // Stride
-//       (void*) (sizeof(GLfloat) * 3)    // Array buffer offset
-//   );
-
-//   // Unbind buffers.
-//   glBindBuffer(GL_ARRAY_BUFFER, 0);
-//   glBindVertexArray(0);
-
     m_shape->updateNormals(m_normalRenderer);
     m_shape->cleanUp();
 }

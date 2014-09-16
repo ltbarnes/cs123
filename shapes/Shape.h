@@ -20,6 +20,8 @@ public:
 
 protected:
 
+    void addVertex(int *i, glm::vec3 v, glm::vec3 norm);
+
     GLuint m_vaoID; // The vertex array object ID, which is passed to glBindVertexArray.
     GLfloat *m_vertexData;
 

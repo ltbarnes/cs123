@@ -96,7 +96,8 @@ void Canvas3D::paintGL()
 void Canvas3D::settingsChanged()
 {
     // TODO: Process changes to the application settings.
-
+    OpenGLScene *scene = this->getScene();
+    scene->init();
 
     // Call superclass (this repaints the scene for you)
     SupportCanvas3D::settingsChanged();
