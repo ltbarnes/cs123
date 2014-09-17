@@ -1,13 +1,12 @@
 #include "Cube.h"
 #include <math.h>
 
-Cube::Cube(int p1, float width)
+Cube::Cube(int p1, float halfWidth)
     : Shape()
 {
-    m_p1 = p1;
-    if (m_p1 < 1)
-        m_p1 = 1;
-    m_radius = width;
+    setParamMax(1, -1, -1);
+    setParam1(p1);
+    m_halfWidth = halfWidth;
 
 }
 
@@ -30,14 +29,16 @@ void Cube::calcVerts()
     makeSide(&index, glm::vec3(-1, 0, 0));
     makeSide(&index, glm::vec3(0, 1, 0));
     makeSide(&index, glm::vec3(0, -1, 0));
-
 }
 
 
 void Cube::makeSide(int *index, glm::vec3 norm)
 {
 
-    int tbi, rli, oi, n;
+    int tbi; // top and bottom index
+    int rli; // right and left index
+    int oi;  // other index
+    int n;   // norm
 
     if (norm.x) {
         tbi = 2;
@@ -63,54 +64,41 @@ void Cube::makeSide(int *index, glm::vec3 norm)
     glm::vec3 bl = glm::vec3();
     glm::vec3 br = glm::vec3();
 
-    float spacing = m_radius * 2.f / m_p1;
+    float spacing = m_halfWidth * 2.f / m_p1;
 
     for (int r = 0; r < m_p1; r++) {
         for (int c = 0; c < m_p1; c++) {
-            float right = (c + 1) * spacing - m_radius;
-            float top = (r + 1) * spacing - m_radius;
-            float left = c * spacing - m_radius;
-            float bottom = r * spacing - m_radius;
+            float right = (c + 1) * spacing - m_halfWidth;
+            float top = (r + 1) * spacing - m_halfWidth;
+            float left = c * spacing - m_halfWidth;
+            float bottom = r * spacing - m_halfWidth;
 
             // top right
             tr[tbi] = top;
             tr[rli] = right;
-            tr[oi] = m_radius * n;
+            tr[oi] = m_halfWidth * n;
 
             // top left
             tl[tbi] = top;
             tl[rli] = left;
-            tl[oi] = m_radius * n;
+            tl[oi] = m_halfWidth * n;
 
             // bottom left
             bl[tbi] = bottom;
             bl[rli] = left;
-            bl[oi] = m_radius * n;
+            bl[oi] = m_halfWidth * n;
 
             // bottom right
             br[tbi] = bottom;
             br[rli] = right;
-            br[oi] = m_radius * n;
+            br[oi] = m_halfWidth * n;
 
-//            printVert(tr);
-//            printVert(tl);
-//            printVert(bl);
-//            printVert(br);
             if (n > 0)
                 makeSquare(index, tr, tl, bl, br, norm);
             else
                 makeSquare(index, tr, br, bl, tl, norm);
         }
     }
-}
-
-
-void Cube::printVert(glm::vec3 v)
-{
-    cout << "(" << v.x;
-    cout << ", " << v.y;
-    cout << ", " << v.z;
-    cout << ")" << endl;
 }
 
 

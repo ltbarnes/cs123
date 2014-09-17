@@ -2,6 +2,7 @@
 
 #include "Camera.h"
 #include "OpenGLScene.h"
+#include "ShapesScene.h"
 #include "OrbitingCamera.h"
 #include "ResourceLoader.h"
 #include "Settings.h"
@@ -96,8 +97,8 @@ void Canvas3D::paintGL()
 void Canvas3D::settingsChanged()
 {
     // TODO: Process changes to the application settings.
-    OpenGLScene *scene = this->getScene();
-    scene->init();
+    ShapesScene *scene = (ShapesScene *)this->getScene();
+    scene->update();
 
     // Call superclass (this repaints the scene for you)
     SupportCanvas3D::settingsChanged();

@@ -3,6 +3,7 @@
 #include <SupportCanvas3D.h>
 #include <QFileDialog>
 #include "shapes/Cube.h"
+#include "shapes/Cylinder.h"
 
 #define SHAPE_RADIUS 0.5f
 
@@ -28,6 +29,12 @@ ShapesScene::ShapesScene()
 
     //TODO: [SHAPES] Allocate any additional memory you need...
     m_shape = NULL;
+    m_oldSettings = glm::vec4(
+                settings.shapeType,
+                settings.shapeParameter1,
+                settings.shapeParameter2,
+                settings.shapeParameter3
+                );
 }
 
 ShapesScene::~ShapesScene()
@@ -39,6 +46,7 @@ ShapesScene::~ShapesScene()
 
 void ShapesScene::init()
 {
+
     // TODO: [SHAPES] Initialize the shape based on settings.shapeType. The sample code provided
     //       initializes a single triangle using OpenGL. Refer to the labs for more information
     //       about these OpenGL functions.
@@ -49,6 +57,16 @@ void ShapesScene::init()
 
     OpenGLScene::init(); // Call the superclass's init()
 
+    this->setShape();
+    this->updateShape();
+
+}
+
+
+void ShapesScene::setShape()
+{
+
+//    cout << "setShape" << endl;
     if (m_shape) {
         delete m_shape;
         m_shape = NULL;
@@ -65,8 +83,8 @@ void ShapesScene::init()
 //        m_shape = new Sphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
 //        break;
     case SHAPE_CYLINDER:
-//        m_shape = new Cylinder(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new Cylinder(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS, SHAPE_RADIUS);
+        break;
     case SHAPE_SPECIAL_1:
 //        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
 //        break;
@@ -80,11 +98,52 @@ void ShapesScene::init()
         m_shape = new Shape();
         break;
     }
+}
 
+
+void ShapesScene::updateShape()
+{
+//    cout << "updateShape" << endl;
+    if (!m_shape)
+        return;
     m_shape->calcVerts();
     m_shape->updateGL(m_shader);
     m_shape->updateNormals(m_normalRenderer);
     m_shape->cleanUp();
+}
+
+void ShapesScene::update()
+{
+    if (m_oldSettings[0] != settings.shapeType) {
+
+        m_oldSettings[0] = settings.shapeType;
+        setShape();
+        updateShape();
+    }
+    else if (m_oldSettings[1] != settings.shapeParameter1 &&
+             m_shape->usesParam(1)) {
+
+        m_oldSettings[1] = settings.shapeParameter1;
+        m_shape->setParam1(settings.shapeParameter1);
+        this->updateShape();
+
+    }
+    else if (m_oldSettings[2] != settings.shapeParameter2 &&
+               m_shape->usesParam(2)) {
+
+        m_oldSettings[2] = settings.shapeParameter2;
+        m_shape->setParam2(settings.shapeParameter2);
+        this->updateShape();
+
+    }
+    else if (m_oldSettings[3] != settings.shapeParameter3 &&
+               m_shape->usesParam(3)) {
+
+        m_oldSettings[3] = settings.shapeParameter3;
+        m_shape->setParam3(settings.shapeParameter3);
+        this->updateShape();
+    }
+
 }
 
 void ShapesScene::renderGeometry()

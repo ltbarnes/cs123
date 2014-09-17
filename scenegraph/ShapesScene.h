@@ -30,6 +30,7 @@ public:
 
     // Initialize the scene.
     virtual void init();
+    virtual void update();
 
 protected:
     // Set the light uniforms for the lights in the scene. (The view matrix is used so that the
@@ -40,11 +41,16 @@ protected:
     virtual void renderGeometry();
 
 private:
+    void setShape();
+    void updateShape();
+
     // Storage for private copies of the scene's light and material data. Note that these don't
     // need to be freed because they are VALUE types (not pointers) and the memory for them is
     // freed when the class itself is freed.
     CS123SceneLightData  m_light;
     CS123SceneMaterial   m_material;
+
+    glm::vec4 m_oldSettings;
 
     Shape *m_shape;
 };
