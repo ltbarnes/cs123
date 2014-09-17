@@ -3,6 +3,7 @@
 #include <SupportCanvas3D.h>
 #include <QFileDialog>
 #include "shapes/Cube.h"
+#include "shapes/Cone.h"
 #include "shapes/Cylinder.h"
 
 #define SHAPE_RADIUS 0.5f
@@ -65,8 +66,6 @@ void ShapesScene::init()
 
 void ShapesScene::setShape()
 {
-
-//    cout << "setShape" << endl;
     if (m_shape) {
         delete m_shape;
         m_shape = NULL;
@@ -77,8 +76,8 @@ void ShapesScene::setShape()
         m_shape = new Cube(settings.shapeParameter1, SHAPE_RADIUS);
         break;
     case SHAPE_CONE:
-//        m_shape = new Cone(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new Cone(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS, SHAPE_RADIUS);
+        break;
     case SHAPE_SPHERE:
 //        m_shape = new Sphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
 //        break;
@@ -103,7 +102,6 @@ void ShapesScene::setShape()
 
 void ShapesScene::updateShape()
 {
-//    cout << "updateShape" << endl;
     if (!m_shape)
         return;
     m_shape->calcVerts();

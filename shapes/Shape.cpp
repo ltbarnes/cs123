@@ -68,17 +68,6 @@ void Shape::calcVerts()
 }
 
 
-void Shape::addVertex(int *i, glm::vec3 v, glm::vec3 norm)
-{
-    m_vertexData[(*i)++] = v.x;
-    m_vertexData[(*i)++] = v.y;
-    m_vertexData[(*i)++] = v.z;
-    m_vertexData[(*i)++] = norm.x;
-    m_vertexData[(*i)++] = norm.y;
-    m_vertexData[(*i)++] = norm.z;
-}
-
-
 void Shape::updateGL(GLuint shader)
 {
     // Initialize the vertex array object.
@@ -122,7 +111,7 @@ void Shape::updateNormals(NormalRenderer *normRenderer)
                 6 * sizeof(GLfloat),    // Stride (distance between consecutive vertices/normals in BYTES
                 0,                      // Offset of first position in BYTES
                 3 * sizeof(GLfloat),    // Offset of first normal in BYTES
-                3);
+                m_numVerts / 2);
 }
 
 void Shape::cleanUp()
@@ -139,6 +128,28 @@ void Shape::render()
         glBindVertexArray(m_vaoID);
         glDrawArrays(GL_TRIANGLES, 0, m_numVerts / 2 /* Number of vertices to draw */);
         glBindVertexArray(0);
+}
+
+
+void Shape::makeRect(int *i, Rect *rect)
+{
+    addVertex(i, rect->tr, rect->trNorm);
+    addVertex(i, rect->tl, rect->tlNorm);
+    addVertex(i, rect->bl, rect->blNorm);
+    addVertex(i, rect->bl, rect->blNorm);
+    addVertex(i, rect->br, rect->brNorm);
+    addVertex(i, rect->tr, rect->trNorm);
+}
+
+
+void Shape::addVertex(int *i, glm::vec3 v, glm::vec3 norm)
+{
+    m_vertexData[(*i)++] = v.x;
+    m_vertexData[(*i)++] = v.y;
+    m_vertexData[(*i)++] = v.z;
+    m_vertexData[(*i)++] = norm.x;
+    m_vertexData[(*i)++] = norm.y;
+    m_vertexData[(*i)++] = norm.z;
 }
 
 

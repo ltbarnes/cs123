@@ -59,10 +59,11 @@ void Cube::makeSide(int *index, glm::vec3 norm)
         n = norm.z;
     }
 
-    glm::vec3 tr = glm::vec3();
-    glm::vec3 tl = glm::vec3();
-    glm::vec3 bl = glm::vec3();
-    glm::vec3 br = glm::vec3();
+    struct Rect rect;
+    rect.blNorm = norm;
+    rect.brNorm = norm;
+    rect.trNorm = norm;
+    rect.tlNorm = norm;
 
     float spacing = m_halfWidth * 2.f / m_p1;
 
@@ -74,42 +75,33 @@ void Cube::makeSide(int *index, glm::vec3 norm)
             float bottom = r * spacing - m_halfWidth;
 
             // top right
-            tr[tbi] = top;
-            tr[rli] = right;
-            tr[oi] = m_halfWidth * n;
+            rect.tr[tbi] = top;
+            rect.tr[rli] = right;
+            rect.tr[oi] = m_halfWidth * n;
 
             // top left
-            tl[tbi] = top;
-            tl[rli] = left;
-            tl[oi] = m_halfWidth * n;
+            rect.tl[tbi] = top;
+            rect.tl[rli] = left;
+            rect.tl[oi] = m_halfWidth * n;
 
             // bottom left
-            bl[tbi] = bottom;
-            bl[rli] = left;
-            bl[oi] = m_halfWidth * n;
+            rect.bl[tbi] = bottom;
+            rect.bl[rli] = left;
+            rect.bl[oi] = m_halfWidth * n;
 
             // bottom right
-            br[tbi] = bottom;
-            br[rli] = right;
-            br[oi] = m_halfWidth * n;
+            rect.br[tbi] = bottom;
+            rect.br[rli] = right;
+            rect.br[oi] = m_halfWidth * n;
 
-            if (n > 0)
-                makeSquare(index, tr, tl, bl, br, norm);
-            else
-                makeSquare(index, tr, br, bl, tl, norm);
+            if (n < 0) {
+                glm::vec3 temp = rect.br;
+                rect.br = rect.tl;
+                rect.tl = temp;
+            }
+            makeRect(index, &rect);
         }
     }
-}
-
-
-void Cube::makeSquare(int *i, glm::vec3 tr, glm::vec3 tl, glm::vec3 bl, glm::vec3 br, glm::vec3 norm)
-{
-    addVertex(i, tr, norm);
-    addVertex(i, tl, norm);
-    addVertex(i, bl, norm);
-    addVertex(i, bl, norm);
-    addVertex(i, br, norm);
-    addVertex(i, tr, norm);
 }
 
 

@@ -23,8 +23,7 @@ void Cylinder::calcVerts()
 {
     // 3 verts per triangle * slices * (horizSquares * 2 +
     // (top and bottom squares * 2 - 1) * 2) * 2 for normals
-//    m_numVerts = 3 * m_p2 * (m_p1 * 2 + ((m_p1 * 2) - 1) * 2) * 2;
-    m_numVerts = 3 * m_p2 * ((m_p1 * 2) - 1) * 2 * 2;
+    m_numVerts = 3 * m_p2 * (m_p1 * 2 + ((m_p1 * 2) - 1) * 2) * 2;
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
@@ -73,7 +72,26 @@ void Cylinder::make3DSlice(int *index, glm::vec2 first, glm::vec2 second)
             glm::vec3(first[0], -m_halfHeight, first[1]), glm::vec3(0, -1, 0));
 
     // walls
-//    for (int i = )
+    float separation = m_halfHeight * 2.f / m_p1;
+
+    glm::vec3 normL = glm::normalize(glm::vec3(first[0], 0, first[1]));
+    glm::vec3 normR = glm::normalize(glm::vec3(second[0], 0, second[1]));
+
+    glm::vec3 br = glm::vec3(second[0], -m_halfHeight, second[1]);
+    glm::vec3 bl = glm::vec3(first[0], -m_halfHeight, first[1]);
+    glm::vec3 tl = glm::vec3(first[0], 0, first[1]);
+    glm::vec3 tr = glm::vec3(second[0], 0, second[1]);
+
+    for (int i = 1; i <= m_p1; i++) {
+        tl[1] = i * separation - m_halfHeight;
+        tr[1] = i * separation - m_halfHeight;
+
+        makeRect(index, tr, tl, bl, br, normL, normR);
+
+        br[1] = tr[1];
+        bl[1] = tl[1];
+
+    }
 }
 
 
@@ -97,19 +115,19 @@ void Cylinder::makeCircleSlice(int *index, glm::vec3 first, glm::vec3 second, gl
         br[0] = second[0] * scale;
         br[2] = second[2] * scale;
 
-        makeRect(index, tr, tl, bl, br, norm);
+        makeRect(index, tr, tl, bl, br, norm, norm);
 
         tl = bl;
         tr = br;
     }
 }
 
-void Cylinder::makeRect(int *i, glm::vec3 tr, glm::vec3 tl, glm::vec3 bl, glm::vec3 br, glm::vec3 norm)
+void Cylinder::makeRect(int *i, glm::vec3 tr, glm::vec3 tl, glm::vec3 bl, glm::vec3 br, glm::vec3 normL, glm::vec3 normR)
 {
-    addVertex(i, tr, norm);
-    addVertex(i, tl, norm);
-    addVertex(i, bl, norm);
-    addVertex(i, bl, norm);
-    addVertex(i, br, norm);
-    addVertex(i, tr, norm);
+    addVertex(i, tr, normR);
+    addVertex(i, tl, normL);
+    addVertex(i, bl, normL);
+    addVertex(i, bl, normL);
+    addVertex(i, br, normR);
+    addVertex(i, tr, normR);
 }
