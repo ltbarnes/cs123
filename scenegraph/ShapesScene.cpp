@@ -4,7 +4,9 @@
 #include <QFileDialog>
 #include "shapes/Cube.h"
 #include "shapes/Cone.h"
+#include "shapes/Sphere.h"
 #include "shapes/Cylinder.h"
+#include "shapes/Torus.h"
 
 #define SHAPE_RADIUS 0.5f
 
@@ -79,10 +81,13 @@ void ShapesScene::setShape()
         m_shape = new Cone(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS, SHAPE_RADIUS);
         break;
     case SHAPE_SPHERE:
-//        m_shape = new Sphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new Sphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+        break;
     case SHAPE_CYLINDER:
         m_shape = new Cylinder(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS, SHAPE_RADIUS);
+        break;
+    case SHAPE_TORUS:
+        m_shape = new Torus(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
         break;
     case SHAPE_SPECIAL_1:
 //        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);

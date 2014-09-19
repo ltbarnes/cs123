@@ -5,7 +5,7 @@ Shape::Shape()
     m_numVerts = 6;
     m_vertexData = NULL;
 
-    setParamMax(-1, -1, -1);
+    setParamMax(-1, -1, -1.f);
 }
 
 Shape::~Shape()
@@ -14,7 +14,7 @@ Shape::~Shape()
 }
 
 
-void Shape::setParamMax(int p1, int p2, int p3)
+void Shape::setParamMax(int p1, int p2, float p3)
 {
     m_p1max = p1;
     m_p2max = p2;
@@ -35,7 +35,7 @@ void Shape::setParam2(int param2)
         m_p2 = m_p2max;
 }
 
-void Shape::setParam3(int param3)
+void Shape::setParam3(float param3)
 {
     m_p3 = param3;
     if (m_p3 < m_p3max)
@@ -49,7 +49,7 @@ bool Shape::usesParam(int num)
     if (num == 2)
         return m_p2max > -1;
     if (num == 3)
-        return m_p3max > -1;
+        return m_p3max > -1.f;
     return false;
 }
 

@@ -15,7 +15,6 @@ Cone::Cone(int p1, int p2, float radius, float halfHeight)
 
 Cone::~Cone()
 {
-
 }
 
 
