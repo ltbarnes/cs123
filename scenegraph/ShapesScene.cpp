@@ -7,6 +7,7 @@
 #include "shapes/Sphere.h"
 #include "shapes/Cylinder.h"
 #include "shapes/Torus.h"
+#include "shapes/Special1.h"
 
 #define SHAPE_RADIUS 0.5f
 
@@ -90,8 +91,8 @@ void ShapesScene::setShape()
         m_shape = new Torus(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
         break;
     case SHAPE_SPECIAL_1:
-//        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new Special1(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
+        break;
     case SHAPE_SPECIAL_2:
 //        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
 //        break;

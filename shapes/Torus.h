@@ -12,7 +12,7 @@ public:
     virtual void calcVerts();
 
 protected:
-    virtual void make3Dslice(int *index, float thetaL, float thetaR);
+    virtual void make3Dslice(int *index, float phiL, float phiR);
 
     float m_radius;
 };
