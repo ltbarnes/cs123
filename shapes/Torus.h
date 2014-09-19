@@ -15,6 +15,8 @@ protected:
     virtual void make3Dslice(int *index, float phiL, float phiR);
 
     float m_radius;
+    float m_r;
+    float m_R;
 };
 
 #endif // TORUS_H
