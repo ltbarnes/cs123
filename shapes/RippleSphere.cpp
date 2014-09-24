@@ -84,14 +84,6 @@ bool RippleSphere::animate()
 }
 
 
-void RippleSphere::render()
-{
-        glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
-        glBindVertexArray(0);
-}
-
-
 float RippleSphere::map(float value, float origRange, float newRange)
 {
     return (value / origRange) * newRange;

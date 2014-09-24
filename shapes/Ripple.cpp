@@ -77,14 +77,6 @@ bool Ripple::animate()
 }
 
 
-void Ripple::render()
-{
-        glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
-        glBindVertexArray(0);
-}
-
-
 glm::vec3 Ripple::calcNormal(glm::vec3 p)
 {
     if (EQ(p.x, 0) && EQ(p.y, 0))

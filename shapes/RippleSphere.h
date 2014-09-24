@@ -11,7 +11,6 @@ public:
 
     virtual void calcVerts();
     virtual bool animate();
-    virtual void render();
 
 protected:
     virtual void make3Dslice(int *index, float thetaL, float thetaR, glm::vec3 top, glm::vec3 bottom);

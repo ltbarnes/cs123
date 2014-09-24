@@ -20,9 +20,7 @@ Cone::~Cone()
 
 void Cone::calcVerts()
 {
-    // 3 verts per triangle * slices *
-    // (bottom and cone squares * 2) - 1) * 2 for normals
-    m_numVerts = 3 * m_p2 * ((m_p1 * 2) - 1) * 2 * 2;
+    m_numVerts = ((m_p2 * ((m_p1 + 1) * 2 * 2)) - 2) * 2;
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
@@ -45,11 +43,17 @@ void Cone::calcVerts()
     z = sine * t + cosine * z;
 
     int index = 0;
-    for (int i = 1; i <= m_p2; i++) {
+    for (int i = 0; i < m_p2; i++) {
         curr[0] = x;
         curr[1] = z;
 
         make3DSlice(&index, curr, prev, normSlope);
+        if (i != m_p2 - 1) {
+            glm::vec3 nl = glm::normalize(glm::vec3(curr.x, m_radius * normSlope, curr.y));
+            glm::vec3 nr = glm::normalize(glm::vec3(prev.x, m_radius * normSlope, prev.y));
+            addVertex(&index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
+            addVertex(&index, glm::vec3(0, m_radius, 0), glm::normalize(nl + nr));
+        }
 
         t = x;
         x = cosine * x - sine * z;
@@ -59,77 +63,58 @@ void Cone::calcVerts()
         prev[1] = curr[1];
     }
 
+    if (size != index)
+        cout << size << ", " << index << endl;
+
 }
 
 
 
 void Cone::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float normSlope)
 {
-    // bottom circle
-    makeCircleSlice(index, glm::vec3(right[0], -m_halfHeight, right[1]),
-            glm::vec3(left[0], -m_halfHeight, left[1]), glm::vec3(0, -1, 0));
-
-    struct Rect rect;
-
     // walls
-    glm::vec3 spineL = glm::vec3(left[0], m_halfHeight * -2.f, left[1]) * (1.f / m_p1);
-    glm::vec3 spineR = glm::vec3(right[0], m_halfHeight * -2.f, right[1]) * (1.f / m_p1);
+    glm::vec3 spineL = glm::vec3(left.x, m_halfHeight * -2.f, left.y) * (1.f / m_p1);
+    glm::vec3 spineR = glm::vec3(right.x, m_halfHeight * -2.f, right.y) * (1.f / m_p1);
 
-    rect.tlNorm = glm::normalize(glm::vec3(left[0], m_radius * normSlope, left[1]));
-    rect.trNorm = glm::normalize(glm::vec3(right[0], m_radius * normSlope, right[1]));
-    rect.blNorm = rect.tlNorm;
-    rect.brNorm = rect.trNorm;
+    glm::vec3 nl = glm::normalize(glm::vec3(left.x, m_radius * normSlope, left.y));
+    glm::vec3 nr = glm::normalize(glm::vec3(right.x, m_radius * normSlope, right.y));
 
     // point of cone
     glm::vec3 point = glm::vec3(0, m_halfHeight, 0);
+    addVertex(index, point, glm::normalize(nl + nr));
 
-    rect.bl = point + spineL;
-    rect.br = point + spineR;
+    for (int i = 1; i <= m_p1; i++) {
 
-    // draw top triangle
-    addVertex(index, point, glm::normalize(rect.tlNorm + rect.trNorm));
-    addVertex(index, rect.bl, rect.tlNorm);
-    addVertex(index, rect.br, rect.trNorm);
-
-    for (int i = 1; i < m_p1; i++) {
-        rect.tl = rect.bl;
-        rect.tr = rect.br;
-        rect.br = rect.tr + spineR;
-        rect.bl = rect.tl + spineL;
-        makeRect(index, &rect);
+        addVertex(index, point + spineL * (1.f * i), nl);
+        addVertex(index, point + spineR * (1.f * i), nr);
     }
+
+    // bottom sliver
+    makeBottomSlice(index, glm::vec3(left.x, -m_halfHeight, left.y), glm::vec3(right.x, -m_halfHeight, right.y));
+
+    // ending point
+    addVertex(index, glm::vec3(0, -m_halfHeight, 0), glm::vec3(0, -1, 0));
+
+
 }
 
 
-void Cone::makeCircleSlice(int *index, glm::vec3 left, glm::vec3 right, glm::vec3 norm)
+void Cone::makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right)
 {
-    struct Rect rect;
-    rect.trNorm = norm;
-    rect.tlNorm = norm;
-    rect.blNorm = norm;
-    rect.brNorm = norm;
+    glm::vec3 n = glm::vec3(0, -1, 0);
+    glm::vec3 vl = glm::vec3(0, left.y, 0);
+    glm::vec3 vr = glm::vec3(0, right.y, 0);
 
-    rect.tr = glm::vec3(right[0] / m_p1, right[1], right[2] / m_p1);
-    rect.tl = glm::vec3(left[0] / m_p1, left[1], left[2] / m_p1);
+    float scale;
 
-    // add top triangle
-    addVertex(index, norm * m_halfHeight, norm);
-    addVertex(index, rect.tl, norm);
-    addVertex(index, rect.tr, norm);
+    for (int i = m_p1; i > 0; i--) {
+        scale = i * m_radius * 2.f / m_p1;
+        vl.x = left.x * scale;
+        vl.z = left.z * scale;
+        vr.x = right.x * scale;
+        vr.z = right.z * scale;
 
-    rect.bl = glm::vec3(0, left[1], 0);
-    rect.br = glm::vec3(0, right[1], 0);
-
-    for (int i = 2; i <= m_p1; i++) {
-        float scale = i * 1.f / m_p1;
-        rect.bl[0] = left[0] * scale;
-        rect.bl[2] = left[2] * scale;
-        rect.br[0] = right[0] * scale;
-        rect.br[2] = right[2] * scale;
-
-        makeRect(index, &rect);
-
-        rect.tl = rect.bl;
-        rect.tr = rect.br;
+        addVertex(index, vl, n);
+        addVertex(index, vr, n);
     }
 }

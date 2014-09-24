@@ -95,11 +95,3 @@ void Cube::makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool
 }
 
 
-void Cube::render()
-{
-        glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
-        glBindVertexArray(0);
-}
-
-

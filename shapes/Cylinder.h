@@ -10,7 +10,6 @@ public:
     virtual ~Cylinder();
 
     virtual void calcVerts();
-    virtual void render();
 
 protected:
     virtual void make3DSlice(int *index, glm::vec2 left, glm::vec2 right);

@@ -134,7 +134,7 @@ void Shape::cleanUp()
 void Shape::render()
 {
         glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLES, 0, m_numVerts / 2 /* Number of vertices to draw */);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
         glBindVertexArray(0);
 }
 

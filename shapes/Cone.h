@@ -13,7 +13,7 @@ public:
 
 protected:
     virtual void make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float normSlope);
-    virtual void makeCircleSlice(int *index, glm::vec3 left, glm::vec3 right, glm::vec3 norm);
+    void makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right);
 
     float m_radius;
     float m_halfHeight;

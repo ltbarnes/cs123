@@ -69,11 +69,3 @@ void Sphere::calcSliceSeg(int *index, float thetaL, float thetaR, float phi)
     addVertex(index, vr, glm::normalize(vr));
 }
 
-
-void Sphere::render()
-{
-        glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
-        glBindVertexArray(0);
-}
-

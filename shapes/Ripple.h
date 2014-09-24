@@ -11,7 +11,6 @@ public:
 
     virtual void calcVerts();
     virtual bool animate();
-    virtual void render();
 
 protected:
     float m_radius;

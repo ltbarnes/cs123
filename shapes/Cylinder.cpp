@@ -26,8 +26,6 @@ void Cylinder::calcVerts()
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
-    // calc slope of normals
-
     float angleSpacing = 2.f * M_PI / m_p2;
     float cosine = cos(angleSpacing);
     float sine = sin(angleSpacing);
@@ -140,11 +138,4 @@ void Cylinder::makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right)
         addVertex(index, vl, n);
         addVertex(index, vr, n);
     }
-}
-
-void Cylinder::render()
-{
-        glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
-        glBindVertexArray(0);
 }
