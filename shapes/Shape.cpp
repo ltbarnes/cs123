@@ -169,4 +169,9 @@ void Shape::printVert(glm::vec3 v)
     cout << ")" << endl;
 }
 
+bool Shape::animate()
+{
+    return false;
+}
+
 

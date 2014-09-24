@@ -23,6 +23,12 @@ public:
 
     // Called when the settings have changed.
     virtual void settingsChanged();
+
+protected:
+    virtual void timerEvent(QTimerEvent *);
+
+private:
+    int m_timer;
 };
 
 #endif // CANVAS3D_H

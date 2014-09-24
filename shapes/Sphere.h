@@ -10,9 +10,11 @@ public:
     virtual ~Sphere();
 
     virtual void calcVerts();
+    virtual void render();
 
 protected:
     virtual void make3Dslice(int *index, float thetaL, float thetaR);
+    virtual void calcSliceSeg(int *index, float thetaL, float thetaR, float phi);
 
     float m_radius;
 };

@@ -31,6 +31,8 @@ public:
     // Initialize the scene.
     virtual void init();
     virtual void update();
+    virtual bool animate();
+    void updateShape();
 
 protected:
     // Set the light uniforms for the lights in the scene. (The view matrix is used so that the
@@ -42,7 +44,6 @@ protected:
 
 private:
     void setShape();
-    void updateShape();
 
     // Storage for private copies of the scene's light and material data. Note that these don't
     // need to be freed because they are VALUE types (not pointers) and the memory for them is

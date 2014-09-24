@@ -26,7 +26,9 @@ public:
 
     virtual bool usesParam(int num);
     virtual void calcVerts();
-    void render();
+    virtual void render();
+
+    virtual bool animate();
 
 protected:
 

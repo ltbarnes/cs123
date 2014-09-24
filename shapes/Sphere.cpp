@@ -18,71 +18,63 @@ Sphere::~Sphere()
 
 void Sphere::calcVerts()
 {
-    // 3 verts per triangle * slices *
-    // (squares per slice - 1) * 2 * 2 for normals
-    m_numVerts = 3 * m_p2 * ((m_p1 - 1) * 2) * 2;
-    int size = m_numVerts * 3;
+    // ((slices * verts per slice) - first and last vert) * 2 for normals
+    m_numVerts = ((m_p2 * (m_p1 + 1) * 2) - 2) * 2;
+    int size = m_numVerts * 3; // 3 points per vertex
     m_vertexData = new GLfloat[size];
 
     float prev = 0;
     float curr;
 
     int index = 0;
+
     for (int i = 1; i <= m_p2; i++) {
         curr = i * M_PI * 2.f / m_p2;
 
         make3Dslice(&index, curr, prev);
+        if (i != m_p2) {
+            addVertex(&index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
+            addVertex(&index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
+        }
 
         prev = curr;
     }
+    cout << "Size: " << size << ", Index: " << index << endl;
 }
 
 
 void Sphere::make3Dslice(int *index, float thetaL, float thetaR)
 {
-    float phi = M_PI / m_p1;
+    double spacing = M_PI / m_p1;
+    float phi;
 
-    struct Rect rect;
-    rect.tl = glm::vec3(m_radius * sin(phi) * cos(thetaL),
+    addVertex(index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
+
+    for (int i = 1; i < m_p1; i++) {
+        phi = i * spacing;
+        calcSliceSeg(index, thetaL, thetaR, phi);
+    }
+    addVertex(index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
+}
+
+void Sphere::calcSliceSeg(int *index, float thetaL, float thetaR, float phi)
+{
+    glm::vec3 vl = glm::vec3(m_radius * sin(phi) * cos(thetaL),
                         m_radius * cos(phi),
                         m_radius * sin(phi) * sin(thetaL));
-    rect.tr = glm::vec3(m_radius * sin(phi) * cos(thetaR),
+    glm::vec3 vr = glm::vec3(m_radius * sin(phi) * cos(thetaR),
                         m_radius * cos(phi),
                         m_radius * sin(phi) * sin(thetaR));
 
-    rect.tlNorm = glm::normalize(rect.tl);
-    rect.trNorm = glm::normalize(rect.tr);
-
-    // top triangle
-    addVertex(index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
-    addVertex(index, rect.tl, rect.tlNorm);
-    addVertex(index, rect.tr, rect.trNorm);
+    addVertex(index, vl, glm::normalize(vl));
+    addVertex(index, vr, glm::normalize(vr));
+}
 
 
-    for (int i = 2; i < m_p1; i++) {
-        phi = i * M_PI / m_p1;
-        rect.bl = glm::vec3(m_radius * sin(phi) * cos(thetaL),
-                            m_radius * cos(phi),
-                            m_radius * sin(phi) * sin(thetaL));
-        rect.br = glm::vec3(m_radius * sin(phi) * cos(thetaR),
-                            m_radius * cos(phi),
-                            m_radius * sin(phi) * sin(thetaR));
-
-        rect.blNorm = glm::normalize(rect.bl);
-        rect.brNorm = glm::normalize(rect.br);
-
-        makeRect(index, &rect);
-
-        rect.tl = rect.bl;
-        rect.tr = rect.br;
-        rect.trNorm = rect.brNorm;
-        rect.tlNorm = rect.blNorm;
-    }
-
-    // bottom triangle
-    addVertex(index, rect.tl, rect.tlNorm);
-    addVertex(index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
-    addVertex(index, rect.tr, rect.trNorm);
-
+void Sphere::render()
+{
+        glBindVertexArray(m_vaoID);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
+        glBindVertexArray(0);
 }
 

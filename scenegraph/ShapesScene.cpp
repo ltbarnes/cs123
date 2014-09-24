@@ -8,6 +8,8 @@
 #include "shapes/Cylinder.h"
 #include "shapes/Torus.h"
 #include "shapes/Special1.h"
+#include "shapes/Ripple.h"
+#include "shapes/RippleSphere.h"
 
 #define SHAPE_RADIUS 0.5f
 
@@ -94,11 +96,11 @@ void ShapesScene::setShape()
         m_shape = new Special1(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
         break;
     case SHAPE_SPECIAL_2:
-//        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new Ripple(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+        break;
     case SHAPE_SPECIAL_3:
-//        m_shape = new (settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
-//        break;
+        m_shape = new RippleSphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+        break;
     default: // basic triangle shape
         m_shape = new Shape();
         break;
@@ -147,7 +149,6 @@ void ShapesScene::update()
         m_shape->setParam3(settings.shapeParameter3);
         this->updateShape();
     }
-
 }
 
 void ShapesScene::renderGeometry()
@@ -159,6 +160,14 @@ void ShapesScene::renderGeometry()
     if (m_shape)
         m_shape->render();
 
+}
+
+
+bool ShapesScene::animate()
+{
+    if (m_shape)
+        return m_shape->animate();
+    return false;
 }
 
 void ShapesScene::setLights(const glm::mat4 viewMatrix)

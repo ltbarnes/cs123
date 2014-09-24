@@ -9,6 +9,7 @@
 
 Canvas3D::Canvas3D(QGLFormat format, QWidget *parent) : SupportCanvas3D(format, parent)
 {
+    m_timer = 0;
 }
 
 Canvas3D::~Canvas3D()
@@ -60,6 +61,8 @@ void Canvas3D::initializeGL()
     getOrbitingCamera()->updateMatrices();
 
     m_initialized = true;
+
+    m_timer = this->startTimer(50); // 20fps
 }
 
 
@@ -90,6 +93,17 @@ void Canvas3D::paintGL()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // TODO figure out a way to display "No OpenGLScene loaded"
+    }
+}
+
+
+void Canvas3D::timerEvent(QTimerEvent *)
+{
+    ShapesScene *scene = (ShapesScene *)this->getScene();
+    bool render = scene->animate();
+    if (render) {
+        scene->updateShape();
+        SupportCanvas3D::settingsChanged();
     }
 }
 

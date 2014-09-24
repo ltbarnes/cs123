@@ -43,16 +43,20 @@ void Special1::make3Dslice(int *index, float phiL, float phiR)
 {
     float theta;
     float r = m_p3 / 100.f;
-    glm::vec3 centerL = glm::vec3(cos(phiL), sin(phiL), 0) * m_radius;
-    glm::vec3 centerR = glm::vec3(cos(phiR), sin(phiR), 0) * m_radius;
+    glm::vec3 centerL = glm::vec3(sin(phiL) * (exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)),
+                                  cos(phiL) * (exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)),
+                                  0) * m_radius;
+    glm::vec3 centerR = glm::vec3(sin(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)),
+                                  cos(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)),
+                                  0) * m_radius;
 
     struct Rect rect;
     struct Rect hack;
-    rect.tl = glm::vec3(sin(phiL) * (exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f) + r * cos(0)),
-                        cos(phiL) * (exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f) + r * cos(0)),
+    rect.tl = glm::vec3(sin(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(0)),
+                        cos(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(0)),
                         r * sin(0));
-    rect.tr = glm::vec3(sin(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f) + r * cos(0)),
-                        cos(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f) + r * cos(0)),
+    rect.tr = glm::vec3(sin(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(0)),
+                        cos(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(0)),
                         r * sin(0));
 
     rect.tlNorm = glm::normalize(rect.tl - centerL);
@@ -61,11 +65,11 @@ void Special1::make3Dslice(int *index, float phiL, float phiR)
 
     for (int i = 1; i <= m_p1; i++) {
         theta = i * M_PI * 2.f / m_p1;
-        rect.bl = glm::vec3(sin(phiL) * (exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f) + r * cos(theta)),
-                            cos(phiL) * (exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f) + r * cos(theta)),
+        rect.bl = glm::vec3(sin(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(theta)),
+                            cos(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(theta)),
                             r * sin(theta));
-        rect.br = glm::vec3(sin(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f) + r * cos(theta)),
-                            cos(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f) + r * cos(theta)),
+        rect.br = glm::vec3(sin(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(theta)),
+                            cos(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(theta)),
                             r * sin(theta));
 
         rect.blNorm = glm::normalize(rect.bl - centerL);
