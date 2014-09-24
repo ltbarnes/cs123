@@ -10,11 +10,12 @@ public:
     virtual ~Cylinder();
 
     virtual void calcVerts();
+    virtual void render();
 
 protected:
-    virtual void make3DSlice(int *index, glm::vec2 first, glm::vec2 second);
-    virtual void makeCircleSlice(int *index, glm::vec3 first, glm::vec3 second, glm::vec3 norm);
-    virtual void makeRect(int *i, glm::vec3 tr, glm::vec3 tl, glm::vec3 bl, glm::vec3 br, glm::vec3 normL, glm::vec3 normR);
+    virtual void make3DSlice(int *index, glm::vec2 left, glm::vec2 right);
+    virtual void makeTopSlice(int *index, glm::vec3 left, glm::vec3 right);
+    virtual void makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right);
 
     float m_radius;
     float m_halfHeight;

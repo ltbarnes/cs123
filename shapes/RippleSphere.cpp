@@ -1,11 +1,12 @@
 #include "RippleSphere.h"
 #include <math.h>
 
-RippleSphere::RippleSphere(int p1, int p2, float radius)
+RippleSphere::RippleSphere(int p1, int p2, float p3, float radius)
 {
-    setParamMax(2, 3, -1);
+    setParamMax(2, 3, 1);
     setParam1(p1);
     setParam2(p2);
+    setParam3(p3);
 
     m_radius = radius;
     m_depth = radius * .2f;
@@ -31,7 +32,7 @@ void RippleSphere::calcVerts()
 
     int index = 0;
     glm::vec3 top = glm::vec3(0, m_radius * (1 + cos(m_ratef) * m_depth), 0);
-    glm::vec3 bottom = glm::vec3(0, -m_radius * (1 + cos(M_PI * 10.f + m_ratef) * m_depth), 0);
+    glm::vec3 bottom = glm::vec3(0, -m_radius * (1 + cos(M_PI * (m_p3 / 5.f) + m_ratef) * m_depth), 0);
 
     for (int i = 1; i <= m_p2; i++) {
         curr = i * M_PI * 2.f / m_p2;
@@ -57,7 +58,7 @@ void RippleSphere::make3Dslice(int *index, float thetaL, float thetaR, glm::vec3
     addVertex(index, top, glm::vec3(0, 1, 0));
     for (int i = 1; i < m_p1; i++) {
         phi = i * spacing;
-        a = 1 + cos(phi * 10 + (m_ratef)) * m_depth;
+        a = 1 + cos(phi * (m_p3 / 5.f) + (m_ratef)) * m_depth;
 
         vl = glm::vec3(m_radius * sin(phi) * cos(thetaL) * a,
                             m_radius * cos(phi) * a,
@@ -99,15 +100,14 @@ float RippleSphere::map(float value, float origRange, float newRange)
 
 glm::vec2 RippleSphere::rotate(glm::vec2 v, float angle)
 {
-    return v * glm::mat2x2(cos(angle), -sin(angle), sin(angle), cos(angle));
-//    return glm::vec2(v.x * cos(angle) - v.y * sin(angle),
-//                     v.x * sin(angle) + v.y * cos(angle));
+    return glm::vec2(v.x * cos(angle) - v.y * sin(angle),
+                     v.x * sin(angle) + v.y * cos(angle));
 }
 
 
 glm::vec3 RippleSphere::calcNorm(float phi, float theta)
 {
-    float tan = -sin(phi * 10 + (m_ratef)) * 10 * m_depth;
+    float tan = -sin(phi * (m_p3 / 5.f) + (m_ratef)) * (m_p3 / 5.f) * m_depth;
     glm::vec2 n = rotate(glm::vec2(-tan, 1), - phi);
     return glm::normalize(glm::vec3(cos(theta) * n.x, n.y, sin(theta) * n.x));
 }

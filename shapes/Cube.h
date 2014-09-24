@@ -10,9 +10,10 @@ public:
     virtual ~Cube();
 
     virtual void calcVerts();
+    virtual void render();
 
 protected:
-    virtual void makeSide(int *index, glm::vec3 norm);
+    virtual void makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool last);
 
     float m_halfWidth;
 };

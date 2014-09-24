@@ -17,22 +17,29 @@ Cube::~Cube()
 
 void Cube::calcVerts()
 {
-    // 6 sides * p1 x p1 squares * 6 vertices per square * 2 for normals
-    m_numVerts = 6 * m_p1 * m_p1 * 6 * 2;
+    // 6 sides * 2w verts * p1 strips * 2 for normals
+    int w = m_p1 + 1;
+    m_numVerts = (6 * ((2 * w + 2) * m_p1) - 2) * 2; // for normals
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
+    double spacing = m_halfWidth * 2.0 / m_p1;
+
     int index = 0;
-    makeSide(&index, glm::vec3(0, 0, 1));
-    makeSide(&index, glm::vec3(1, 0, 0));
-    makeSide(&index, glm::vec3(0, 0, -1));
-    makeSide(&index, glm::vec3(-1, 0, 0));
-    makeSide(&index, glm::vec3(0, 1, 0));
-    makeSide(&index, glm::vec3(0, -1, 0));
+    makeSide(&index, glm::vec3(0, 0, 1), spacing, true, false);
+    makeSide(&index, glm::vec3(0, 1, 0), spacing, false, false);
+    makeSide(&index, glm::vec3(1, 0, 0), spacing, false, false);
+    makeSide(&index, glm::vec3(0, -1, 0), spacing, false, false);
+    makeSide(&index, glm::vec3(-1, 0, 0), spacing, false, false);
+    makeSide(&index, glm::vec3(0, 0, -1), spacing, false, true);
+
+    if (size != index)
+        cout << size << ", " << index << endl;
+
 }
 
 
-void Cube::makeSide(int *index, glm::vec3 norm)
+void Cube::makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool last)
 {
 
     int tbi; // top and bottom index
@@ -52,56 +59,47 @@ void Cube::makeSide(int *index, glm::vec3 norm)
         oi = 1;
         n = norm.y;
     }
-    else if (norm.z) {
+    else { // (norm.z)
         tbi = 1;
         rli = 0;
         oi = 2;
         n = norm.z;
     }
 
-    struct Rect rect;
-    rect.blNorm = norm;
-    rect.brNorm = norm;
-    rect.trNorm = norm;
-    rect.tlNorm = norm;
 
-    float spacing = m_halfWidth * 2.f / m_p1;
+    glm::vec3 v1, v2;
+    v1 = glm::vec3();
+    v1[rli] = -m_halfWidth;
+    v1[tbi] = -m_halfWidth;
+    v1[oi] = n * m_halfWidth;
 
-    for (int r = 0; r < m_p1; r++) {
-        for (int c = 0; c < m_p1; c++) {
-            float right = (c + 1) * spacing - m_halfWidth;
-            float top = (r + 1) * spacing - m_halfWidth;
-            float left = c * spacing - m_halfWidth;
-            float bottom = r * spacing - m_halfWidth;
+    for (int i = 0; i < m_p1; i++) {
 
-            // top right
-            rect.tr[tbi] = top;
-            rect.tr[rli] = right;
-            rect.tr[oi] = m_halfWidth * n;
+        v1[rli] = (i * spacing - m_halfWidth);
+        v1[tbi] = (-m_halfWidth) * n;
+        addVertex(index, v1, norm);
 
-            // top left
-            rect.tl[tbi] = top;
-            rect.tl[rli] = left;
-            rect.tl[oi] = m_halfWidth * n;
+        for (int j = 0; j <= m_p1; j++) {
+            v1[tbi] = (j * spacing - m_halfWidth) * n;
+            v2 = v1;
+            v2[rli] = v1[rli] + spacing;
 
-            // bottom left
-            rect.bl[tbi] = bottom;
-            rect.bl[rli] = left;
-            rect.bl[oi] = m_halfWidth * n;
 
-            // bottom right
-            rect.br[tbi] = bottom;
-            rect.br[rli] = right;
-            rect.br[oi] = m_halfWidth * n;
-
-            if (n < 0) {
-                glm::vec3 temp = rect.br;
-                rect.br = rect.tl;
-                rect.tl = temp;
-            }
-            makeRect(index, &rect);
+            if (j != 0 || i != 0 || !first)
+                addVertex(index, v1, norm);
+            if (j != m_p1 || i != m_p1 - 1 || !last)
+                addVertex(index, v2, norm);
         }
+        addVertex(index, v2, norm);
     }
+}
+
+
+void Cube::render()
+{
+        glBindVertexArray(m_vaoID);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
+        glBindVertexArray(0);
 }
 
 

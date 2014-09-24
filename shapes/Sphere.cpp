@@ -39,7 +39,6 @@ void Sphere::calcVerts()
 
         prev = curr;
     }
-    cout << "Size: " << size << ", Index: " << index << endl;
 }
 
 

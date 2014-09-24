@@ -15,7 +15,6 @@ Cylinder::Cylinder(int p1, int p2, float radius, float halfHeight)
 
 Cylinder::~Cylinder()
 {
-
 }
 
 
@@ -23,9 +22,11 @@ void Cylinder::calcVerts()
 {
     // 3 verts per triangle * slices * (horizSquares * 2 +
     // (top and bottom squares * 2 - 1) * 2) * 2 for normals
-    m_numVerts = 3 * m_p2 * (m_p1 * 2 + ((m_p1 * 2) - 1) * 2) * 2;
+    m_numVerts = ((m_p2 * ((m_p1 * 2 * 3) + 6)) - 2) * 2;
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
+
+    // calc slope of normals
 
     float angleSpacing = 2.f * M_PI / m_p2;
     float cosine = cos(angleSpacing);
@@ -43,11 +44,15 @@ void Cylinder::calcVerts()
     z = sine * t + cosine * z;
 
     int index = 0;
-    for (int i = 1; i <= m_p2; i++) {
+    for (int i = 0; i < m_p2; i++) {
         curr[0] = x;
         curr[1] = z;
 
         make3DSlice(&index, curr, prev);
+        if (i != m_p2 - 1) {
+            addVertex(&index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
+            addVertex(&index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
+        }
 
         t = x;
         x = cosine * x - sine * z;
@@ -57,77 +62,89 @@ void Cylinder::calcVerts()
         prev[1] = curr[1];
     }
 
+    if (size != index)
+        cout << size << ", " << index << endl;
+
 }
 
 
 
-void Cylinder::make3DSlice(int *index, glm::vec2 first, glm::vec2 second)
+void Cylinder::make3DSlice(int *index, glm::vec2 left, glm::vec2 right)
 {
-    // top circle
-    makeCircleSlice(index, glm::vec3(first[0], m_halfHeight, first[1]),
-            glm::vec3(second[0], m_halfHeight, second[1]), glm::vec3(0, 1, 0));
+    // starting point
+    addVertex(index, glm::vec3(0, m_halfHeight, 0), glm::vec3(0, 1, 0));
 
-    // bottom circle
-    makeCircleSlice(index, glm::vec3(second[0], -m_halfHeight, second[1]),
-            glm::vec3(first[0], -m_halfHeight, first[1]), glm::vec3(0, -1, 0));
+    // top sliver
+    makeTopSlice(index, glm::vec3(left.x, m_halfHeight, left.y), glm::vec3(right.x, m_halfHeight, right.y));
 
-    // walls
-    float separation = m_halfHeight * 2.f / m_p1;
+    // make wall
+    glm::vec3 nl = glm::vec3(left.x, 0, left.y);
+    glm::vec3 nr = glm::vec3(right.x, 0, right.y);
 
-    glm::vec3 normL = glm::normalize(glm::vec3(first[0], 0, first[1]));
-    glm::vec3 normR = glm::normalize(glm::vec3(second[0], 0, second[1]));
+    glm::vec3 vl = nl;
+    glm::vec3 vr = nr;
 
-    glm::vec3 br = glm::vec3(second[0], -m_halfHeight, second[1]);
-    glm::vec3 bl = glm::vec3(first[0], -m_halfHeight, first[1]);
-    glm::vec3 tl = glm::vec3(first[0], 0, first[1]);
-    glm::vec3 tr = glm::vec3(second[0], 0, second[1]);
+    for (int i = m_p1; i >= 0; i--) {
+        float y = (i * m_halfHeight * 2.f / m_p1) - m_halfHeight;
+        vl.y = y;
+        vr.y = y;
+
+        addVertex(index, vl, nl);
+        addVertex(index, vr, nr);
+    }
+
+    // bottom sliver
+    makeBottomSlice(index, glm::vec3(left.x, -m_halfHeight, left.y), glm::vec3(right.x, -m_halfHeight, right.y));
+
+    // ending point
+    addVertex(index, glm::vec3(0, -m_halfHeight, 0), glm::vec3(0, -1, 0));
+}
+
+
+void Cylinder::makeTopSlice(int *index, glm::vec3 left, glm::vec3 right)
+{
+    glm::vec3 n = glm::vec3(0, 1, 0);
+    glm::vec3 vl = glm::vec3(0, left.y, 0);
+    glm::vec3 vr = glm::vec3(0, right.y, 0);
+
+    float scale;
 
     for (int i = 1; i <= m_p1; i++) {
-        tl[1] = i * separation - m_halfHeight;
-        tr[1] = i * separation - m_halfHeight;
+        scale = i * m_radius * 2.f / m_p1;
+        vl.x = left.x * scale;
+        vl.z = left.z * scale;
+        vr.x = right.x * scale;
+        vr.z = right.z * scale;
 
-        makeRect(index, tr, tl, bl, br, normL, normR);
-
-        br[1] = tr[1];
-        bl[1] = tl[1];
-
+        addVertex(index, vl, n);
+        addVertex(index, vr, n);
     }
 }
 
 
-void Cylinder::makeCircleSlice(int *index, glm::vec3 first, glm::vec3 second, glm::vec3 norm)
+void Cylinder::makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right)
 {
-    glm::vec3 tr = glm::vec3(second[0] / m_p1, second[1], second[2] / m_p1);
-    glm::vec3 tl = glm::vec3(first[0] / m_p1, first[1], first[2] / m_p1);
+    glm::vec3 n = glm::vec3(0, -1, 0);
+    glm::vec3 vl = glm::vec3(0, left.y, 0);
+    glm::vec3 vr = glm::vec3(0, right.y, 0);
 
-    // add top triangle
-    addVertex(index, norm * m_halfHeight, norm);
-    addVertex(index, tl, norm);
-    addVertex(index, tr, norm);
+    float scale;
 
-    glm::vec3 bl = glm::vec3(0, first[1], 0);
-    glm::vec3 br = glm::vec3(0, second[1], 0);
+    for (int i = m_p1; i > 0; i--) {
+        scale = i * m_radius * 2.f / m_p1;
+        vl.x = left.x * scale;
+        vl.z = left.z * scale;
+        vr.x = right.x * scale;
+        vr.z = right.z * scale;
 
-    for (int i = 2; i <= m_p1; i++) {
-        float scale = i * 1.f / m_p1;
-        bl[0] = first[0] * scale;
-        bl[2] = first[2] * scale;
-        br[0] = second[0] * scale;
-        br[2] = second[2] * scale;
-
-        makeRect(index, tr, tl, bl, br, norm, norm);
-
-        tl = bl;
-        tr = br;
+        addVertex(index, vl, n);
+        addVertex(index, vr, n);
     }
 }
 
-void Cylinder::makeRect(int *i, glm::vec3 tr, glm::vec3 tl, glm::vec3 bl, glm::vec3 br, glm::vec3 normL, glm::vec3 normR)
+void Cylinder::render()
 {
-    addVertex(i, tr, normR);
-    addVertex(i, tl, normL);
-    addVertex(i, bl, normL);
-    addVertex(i, bl, normL);
-    addVertex(i, br, normR);
-    addVertex(i, tr, normR);
+        glBindVertexArray(m_vaoID);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
+        glBindVertexArray(0);
 }

@@ -6,7 +6,7 @@
 class RippleSphere : public Shape
 {
 public:
-    RippleSphere(int p1, int p2, float radius);
+    RippleSphere(int p1, int p2, float p3, float radius);
     virtual ~RippleSphere();
 
     virtual void calcVerts();

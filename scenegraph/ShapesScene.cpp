@@ -99,7 +99,7 @@ void ShapesScene::setShape()
         m_shape = new Ripple(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
         break;
     case SHAPE_SPECIAL_3:
-        m_shape = new RippleSphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+        m_shape = new RippleSphere(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
         break;
     default: // basic triangle shape
         m_shape = new Shape();
