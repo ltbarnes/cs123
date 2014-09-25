@@ -27,7 +27,8 @@ void Torus::calcVerts()
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
-
+    // calc the radius to the center point and the
+    // radius from the center ring to the surface
     m_R = m_radius - (m_radius * m_p3 / 100.f);
     m_r = m_radius - m_R;
 
@@ -35,6 +36,8 @@ void Torus::calcVerts()
     float curr;
 
     int index = 0;
+
+    // iterate through the slices
     for (int i = 1; i <= m_p1; i++) {
         curr = i * M_PI * 2.f / m_p1;
 
@@ -42,17 +45,18 @@ void Torus::calcVerts()
 
         prev = curr;
     }
-    if (size != index)
-        cout << size << ", " << index << endl;
 }
 
 
 void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool last)
 {
     float theta;
+
+    // center points
     glm::vec3 centerL = glm::vec3(cos(phiL), sin(phiL), 0) * m_R;
     glm::vec3 centerR = glm::vec3(cos(phiR), sin(phiR), 0) * m_R;
 
+    // parametric torus equation
     glm::vec3 vl = glm::vec3((m_R + m_r * cos(0)) * cos(phiL),
                         (m_R + m_r * cos(0)) * sin(phiL),
                         m_r * sin(0));
@@ -61,12 +65,14 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
 
     glm::vec3 vr, nr;
 
+    // double the first point if it's not the first point on the shape
     if (!first)
         addVertex(index, vl, nl);
 
-
     for (int i = 0; i <= m_p2; i++) {
         theta = i * M_PI * 2.f / m_p2;
+
+        // parametric torus equation
         vl = glm::vec3((m_R + m_r * cos(theta)) * cos(phiL),
                             (m_R + m_r * cos(theta)) * sin(phiL),
                             m_r * sin(theta));
@@ -80,6 +86,7 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
         addVertex(index, vl, nl);
         addVertex(index, vr, nr);
     }
+    // double the last point if it's not the last point on the shape
     if (!last)
         addVertex(index, vr, nr);
 

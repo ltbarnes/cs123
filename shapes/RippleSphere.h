@@ -14,7 +14,6 @@ public:
 
 protected:
     virtual void make3Dslice(int *index, float thetaL, float thetaR, glm::vec3 top, glm::vec3 bottom);
-    float map(float value, float origRange, float newRange);
 
     float m_radius;
     float m_depth;

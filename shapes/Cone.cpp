@@ -20,34 +20,41 @@ Cone::~Cone()
 
 void Cone::calcVerts()
 {
-    m_numVerts = ((m_p2 * ((m_p1 + 1) * 2 * 2)) - 2) * 2;
+    m_numVerts = ((m_p2 * ((m_p1 + 1) * 4)) - 2) * 2;
     int size = m_numVerts * 3;
     m_vertexData = new GLfloat[size];
 
     // calc slope of normals
     float normSlope = m_radius / (m_halfHeight * 2.f);
 
+    // for rotations
     float angleSpacing = 2.f * M_PI / m_p2;
     float cosine = cos(angleSpacing);
     float sine = sin(angleSpacing);
 
     float x = m_radius;
     float z = 0;
-    float t;
+    float temp;
 
     glm::vec2 prev = glm::vec2(x, z);
     glm::vec2 curr = glm::vec2(0, 0);
 
-    t = x;
+    // rotation matrix
+    temp = x;
     x = cosine * x - sine * z;
-    z = sine * t + cosine * z;
+    z = sine * temp + cosine * z;
 
     int index = 0;
+
+    // iterate through each slice
     for (int i = 0; i < m_p2; i++) {
         curr[0] = x;
         curr[1] = z;
 
         make3DSlice(&index, curr, prev, normSlope);
+
+        // repeat the last point of this slice and the first point of the next
+        // slice so the renderer won't connect the two points
         if (i != m_p2 - 1) {
             glm::vec3 nl = glm::normalize(glm::vec3(curr.x, m_radius * normSlope, curr.y));
             glm::vec3 nr = glm::normalize(glm::vec3(prev.x, m_radius * normSlope, prev.y));
@@ -55,16 +62,14 @@ void Cone::calcVerts()
             addVertex(&index, glm::vec3(0, m_radius, 0), glm::normalize(nl + nr));
         }
 
-        t = x;
+        // rotation matrix
+        temp = x;
         x = cosine * x - sine * z;
-        z = sine * t + cosine * z;
+        z = sine * temp + cosine * z;
 
         prev[0] = curr[0];
         prev[1] = curr[1];
     }
-
-    if (size != index)
-        cout << size << ", " << index << endl;
 
 }
 
@@ -72,24 +77,25 @@ void Cone::calcVerts()
 
 void Cone::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float normSlope)
 {
-    // walls
+    // get the slice angles and normals
     glm::vec3 spineL = glm::vec3(left.x, m_halfHeight * -2.f, left.y) * (1.f / m_p1);
     glm::vec3 spineR = glm::vec3(right.x, m_halfHeight * -2.f, right.y) * (1.f / m_p1);
 
     glm::vec3 nl = glm::normalize(glm::vec3(left.x, m_radius * normSlope, left.y));
     glm::vec3 nr = glm::normalize(glm::vec3(right.x, m_radius * normSlope, right.y));
 
-    // point of cone
+    // point of cone (starting point)
     glm::vec3 point = glm::vec3(0, m_halfHeight, 0);
     addVertex(index, point, glm::normalize(nl + nr));
 
+    // build the wall
     for (int i = 1; i <= m_p1; i++) {
 
         addVertex(index, point + spineL * (1.f * i), nl);
         addVertex(index, point + spineR * (1.f * i), nr);
     }
 
-    // bottom sliver
+    // make the bottom circle slice
     makeBottomSlice(index, glm::vec3(left.x, -m_halfHeight, left.y), glm::vec3(right.x, -m_halfHeight, right.y));
 
     // ending point
@@ -107,6 +113,7 @@ void Cone::makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right)
 
     float scale;
 
+    // build the slice from the outside in
     for (int i = m_p1; i > 0; i--) {
         scale = i * m_radius * 2.f / m_p1;
         vl.x = left.x * scale;

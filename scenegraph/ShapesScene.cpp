@@ -45,21 +45,12 @@ ShapesScene::ShapesScene()
 
 ShapesScene::~ShapesScene()
 {
-    // TODO: [SHAPES] Don't leak memory!
     if (m_shape)
         delete m_shape;
 }
 
 void ShapesScene::init()
 {
-
-    // TODO: [SHAPES] Initialize the shape based on settings.shapeType. The sample code provided
-    //       initializes a single triangle using OpenGL. Refer to the labs for more information
-    //       about these OpenGL functions.
-    //
-    //       If you've chosen to implement subclasses for your shapes, this would be a good time to
-    //       call upon the subclass to initialize itself.
-    //
 
     OpenGLScene::init(); // Call the superclass's init()
 
@@ -93,7 +84,7 @@ void ShapesScene::setShape()
         m_shape = new Torus(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
         break;
     case SHAPE_SPECIAL_1:
-        m_shape = new Special1(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
+        m_shape = new Shape();
         break;
     case SHAPE_SPECIAL_2:
         m_shape = new Ripple(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
@@ -118,6 +109,10 @@ void ShapesScene::updateShape()
     m_shape->cleanUp();
 }
 
+/**
+ * @brief ShapesScene::update - checks for parameter or shape changes and updates
+ * the appropriate objects.
+ */
 void ShapesScene::update()
 {
     if (m_oldSettings[0] != settings.shapeType) {
@@ -165,6 +160,7 @@ void ShapesScene::renderGeometry()
 
 bool ShapesScene::animate()
 {
+    // return whether or not the shape is capable of animation
     if (m_shape)
         return m_shape->animate();
     return false;

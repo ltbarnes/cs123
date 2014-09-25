@@ -28,10 +28,14 @@ void Sphere::calcVerts()
 
     int index = 0;
 
+    // iterate through the slices
     for (int i = 1; i <= m_p2; i++) {
         curr = i * M_PI * 2.f / m_p2;
 
         make3Dslice(&index, curr, prev);
+
+        // repeat the last point of this slice and the first point of the next
+        // slice so the renderer won't connect the two points
         if (i != m_p2) {
             addVertex(&index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
             addVertex(&index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
@@ -47,17 +51,21 @@ void Sphere::make3Dslice(int *index, float thetaL, float thetaR)
     double spacing = M_PI / m_p1;
     float phi;
 
+    // top point
     addVertex(index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
 
+    // iterate through sub blocks of slice
     for (int i = 1; i < m_p1; i++) {
         phi = i * spacing;
         calcSliceSeg(index, thetaL, thetaR, phi);
     }
+    // bottom point
     addVertex(index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
 }
 
 void Sphere::calcSliceSeg(int *index, float thetaL, float thetaR, float phi)
 {
+    // parametric sphere equations
     glm::vec3 vl = glm::vec3(m_radius * sin(phi) * cos(thetaL),
                         m_radius * cos(phi),
                         m_radius * sin(phi) * sin(thetaL));

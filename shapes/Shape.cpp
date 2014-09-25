@@ -12,7 +12,8 @@ Shape::Shape()
 Shape::~Shape()
 {
     cleanUp();
-    glDeleteVertexArrays(1, &m_vaoID);
+    if (m_vaoID)
+        glDeleteVertexArrays(1, &m_vaoID);
 }
 
 
@@ -115,7 +116,7 @@ void Shape::updateGL(GLuint shader)
 void Shape::updateNormals(NormalRenderer *normRenderer)
 {
     normRenderer->generateArrays(
-                m_vertexData,             // Pointer to vertex data
+                m_vertexData,           // Pointer to vertex data
                 6 * sizeof(GLfloat),    // Stride (distance between consecutive vertices/normals in BYTES
                 0,                      // Offset of first position in BYTES
                 3 * sizeof(GLfloat),    // Offset of first normal in BYTES
@@ -134,19 +135,8 @@ void Shape::cleanUp()
 void Shape::render()
 {
         glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2 /* Number of vertices to draw */);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2); /* Number of vertices to draw (w/o normals) */
         glBindVertexArray(0);
-}
-
-
-void Shape::makeRect(int *i, Rect *rect)
-{
-    addVertex(i, rect->tr, rect->trNorm);
-    addVertex(i, rect->tl, rect->tlNorm);
-    addVertex(i, rect->bl, rect->blNorm);
-    addVertex(i, rect->bl, rect->blNorm);
-    addVertex(i, rect->br, rect->brNorm);
-    addVertex(i, rect->tr, rect->trNorm);
 }
 
 

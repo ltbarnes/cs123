@@ -25,6 +25,7 @@ public:
     virtual void settingsChanged();
 
 protected:
+    // Gets called at an interval specified by the timer
     virtual void timerEvent(QTimerEvent *);
 
 private:

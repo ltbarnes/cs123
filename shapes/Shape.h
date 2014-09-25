@@ -3,13 +3,6 @@
 
 #include "OpenGLScene.h"
 
-struct Rect {
-    glm::vec3 tr, trNorm;
-    glm::vec3 tl, tlNorm;
-    glm::vec3 bl, blNorm;
-    glm::vec3 br, brNorm;
-};
-
 class Shape
 {
 public:
@@ -33,7 +26,6 @@ public:
 protected:
 
     void addVertex(int *i, glm::vec3 v, glm::vec3 norm);
-    void makeRect(int *i, struct Rect *rect);
 
     void printVert(glm::vec3 v);
     void setParamMax(int p1, int p2, float p3);

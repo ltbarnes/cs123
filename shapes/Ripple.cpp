@@ -35,6 +35,7 @@ void Ripple::calcVerts()
         v1.x = i * spacing - m_radius;
 
         bool skip = false;
+        // draw up and down the columns depending on whether it's odd or even
         if (i % 2 == 0) {
             for (int j = 0; j < w; j++) {
                 v1.y = j * spacing - m_radius;
@@ -71,6 +72,7 @@ void Ripple::calcVerts()
 
 bool Ripple::animate()
 {
+    // update where on the sine function starts
     if (--m_rate < 0)
         m_rate = 100;
     return true;
@@ -79,8 +81,11 @@ bool Ripple::animate()
 
 glm::vec3 Ripple::calcNormal(glm::vec3 p)
 {
+    // kind of a hack to make sure the center normal is vertical
     if (EQ(p.x, 0) && EQ(p.y, 0))
         return glm::vec3(0, 0, 1);
+
+    // calculates the gradient to the curve
     float x = p.x * 20.f;
     float y = p.y * 20.f;
     return glm::normalize(glm::vec3(
@@ -89,7 +94,13 @@ glm::vec3 Ripple::calcNormal(glm::vec3 p)
                 .1f));
 }
 
-
+/**
+ * @brief Ripple::f the sine function used to draw the shape:
+ *                  f(x,y) = sin(sqrt(x^2 + y^2)
+ * @param x - the x location
+ * @param y - the y location
+ * @return the z location based on the function
+ */
 float Ripple::f(float x, float y)
 {
     x = x * 20.f;
@@ -97,7 +108,12 @@ float Ripple::f(float x, float y)
     return (float) sin(sqrt(x * x + y * y) + (m_rate * M_PI * 2.f / 100.f)) * .1f;
 }
 
-
+/**
+ * @brief Ripple::df - the majority of the partial derivative of the sine fuction used to draw the shape
+ * @param x - the x location
+ * @param y - the y location
+ * @return the value at point (x, y)
+ */
 float Ripple::df(float x, float y)
 {
     double sqroot = sqrt(x * x + y * y);

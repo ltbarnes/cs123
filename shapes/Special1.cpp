@@ -50,48 +50,5 @@ void Special1::make3Dslice(int *index, float phiL, float phiR)
                                   cos(phiR) * (exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)),
                                   0) * m_radius;
 
-    struct Rect rect;
-    struct Rect hack;
-    rect.tl = glm::vec3(sin(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(0)),
-                        cos(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(0)),
-                        r * sin(0));
-    rect.tr = glm::vec3(sin(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(0)),
-                        cos(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(0)),
-                        r * sin(0));
-
-    rect.tlNorm = glm::normalize(rect.tl - centerL);
-    rect.trNorm = glm::normalize(rect.tr - centerR);
-
-
-    for (int i = 1; i <= m_p1; i++) {
-        theta = i * M_PI * 2.f / m_p1;
-        rect.bl = glm::vec3(sin(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(theta)),
-                            cos(phiL) * ((exp(cos(phiL)) - 2 * cos(4 * phiL) - pow(sin(phiL/12.f), 5.f)) * m_radius + r * cos(theta)),
-                            r * sin(theta));
-        rect.br = glm::vec3(sin(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(theta)),
-                            cos(phiR) * ((exp(cos(phiR)) - 2 * cos(4 * phiR) - pow(sin(phiR/12.f), 5.f)) * m_radius + r * cos(theta)),
-                            r * sin(theta));
-
-        rect.blNorm = glm::normalize(rect.bl - centerL);
-        rect.brNorm = glm::normalize(rect.br - centerR);
-
-        hack.bl = rect.tl;
-        hack.br = rect.tr;
-        hack.tl = rect.bl;
-        hack.tr = rect.br;
-        hack.blNorm = rect.tlNorm;
-        hack.brNorm = rect.trNorm;
-        hack.trNorm = rect.brNorm;
-        hack.blNorm = rect.blNorm;
-
-        makeRect(index, &rect);
-        makeRect(index, &hack);
-
-        rect.tl = rect.bl;
-        rect.tr = rect.br;
-        rect.trNorm = rect.brNorm;
-        rect.tlNorm = rect.blNorm;
-    }
-
 }
 

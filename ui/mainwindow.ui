@@ -83,8 +83,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>338</width>
-             <height>3061</height>
+             <width>355</width>
+             <height>3065</height>
             </rect>
            </property>
           </widget>
@@ -513,21 +513,21 @@
         <item>
          <widget class="QRadioButton" name="shapeTypeSpecial1">
           <property name="text">
-           <string>Special 1</string>
+           <string>Triangle</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QRadioButton" name="shapeTypeSpecial2">
           <property name="text">
-           <string>Special 2</string>
+           <string>Ripple Plane</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QRadioButton" name="shapeTypeSpecial3">
           <property name="text">
-           <string>Special 3</string>
+           <string>Ripple Sphere</string>
           </property>
          </widget>
         </item>
@@ -1895,7 +1895,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

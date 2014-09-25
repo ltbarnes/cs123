@@ -51,8 +51,10 @@ private:
     CS123SceneLightData  m_light;
     CS123SceneMaterial   m_material;
 
+    // stores all previous settings to check for changes
     glm::vec4 m_oldSettings;
 
+    // the current shape
     Shape *m_shape;
 };
 

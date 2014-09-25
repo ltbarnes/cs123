@@ -26,15 +26,13 @@ void Cube::calcVerts()
     double spacing = m_halfWidth * 2.0 / m_p1;
 
     int index = 0;
+    // draw each of the six sides
     makeSide(&index, glm::vec3(0, 0, 1), spacing, true, false);
     makeSide(&index, glm::vec3(0, 1, 0), spacing, false, false);
     makeSide(&index, glm::vec3(1, 0, 0), spacing, false, false);
     makeSide(&index, glm::vec3(0, -1, 0), spacing, false, false);
     makeSide(&index, glm::vec3(-1, 0, 0), spacing, false, false);
     makeSide(&index, glm::vec3(0, 0, -1), spacing, false, true);
-
-    if (size != index)
-        cout << size << ", " << index << endl;
 
 }
 
@@ -68,7 +66,8 @@ void Cube::makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool
 
 
     glm::vec3 v1, v2;
-    v1 = glm::vec3();
+
+    // set corner point
     v1[rli] = -m_halfWidth;
     v1[tbi] = -m_halfWidth;
     v1[oi] = n * m_halfWidth;
@@ -77,20 +76,22 @@ void Cube::makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool
 
         v1[rli] = (i * spacing - m_halfWidth);
         v1[tbi] = (-m_halfWidth) * n;
-        addVertex(index, v1, norm);
+
+        // double the first point if it isn't the start of the cube
+        if (i != 0 || !first)
+            addVertex(index, v1, norm);
 
         for (int j = 0; j <= m_p1; j++) {
             v1[tbi] = (j * spacing - m_halfWidth) * n;
             v2 = v1;
             v2[rli] = v1[rli] + spacing;
 
-
-            if (j != 0 || i != 0 || !first)
-                addVertex(index, v1, norm);
-            if (j != m_p1 || i != m_p1 - 1 || !last)
-                addVertex(index, v2, norm);
+            addVertex(index, v1, norm);
+            addVertex(index, v2, norm);
         }
-        addVertex(index, v2, norm);
+        // double the last point if it isn't the end of the cube
+        if (i != m_p1 - 1 || !last)
+            addVertex(index, v2, norm);
     }
 }
 
