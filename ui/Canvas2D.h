@@ -3,6 +3,7 @@
 
 #include "SupportCanvas2D.h"
 #include "brush/Brush.h"
+#include "filter/Filter.h"
 
 class RayScene;
 
@@ -53,6 +54,7 @@ private:
 
     //TODO: [BRUSH, INTERSECT, RAY] Put your member variables here.
     Brush *m_brush;
+    Filter *m_filter;
 
     int m_timer;
 };

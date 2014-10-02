@@ -156,11 +156,32 @@ void Canvas2D::filterImage()
     // TODO: [FILTER] Filter the image. Some example code to get the filter type is provided below.
 
     switch (settings.filterType) {
-    case FILTER_BLUR:
-        // ...
+    case FILTER_INVERT:
+        cout << "invert!" << endl;
+        m_filter = new Filter();
         break;
-        // fill in the rest
+    case FILTER_GRAYSCALE:
+        break;
+    case FILTER_EDGE_DETECT:
+        break;
+    case FILTER_BLUR:
+        break;
+    case FILTER_SCALE:
+        break;
+    case FILTER_ROTATE:
+        break;
+    case FILTER_SPECIAL_1:
+        break;
+    case FILTER_SPECIAL_2:
+        break;
+    case FILTER_SPECIAL_3:
+        break;
+    default:
+        m_filter = new Filter();
+        break;
     }
+
+    m_filter->filter(this);
 
 }
 
