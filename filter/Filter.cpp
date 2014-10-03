@@ -29,10 +29,10 @@ void Filter::setBounds(Canvas2D *canvas)
     if (start.x() == stop.x() && start.y() == stop.y()) {
         m_l = 0; m_r = width; m_t = 0; m_b = height;
     } else {
-        m_l = MAX(0, MIN(start.x(), stop.x()));
-        m_r = MIN(width, MAX(start.x(), stop.x()));
-        m_t = MAX(0, MIN(start.y(), stop.y()));
-        m_b = MIN(height, MAX(start.y(), stop.y()));
+        m_l = std::max(0, std::min(start.x(), stop.x()));
+        m_r = std::min(width, std::max(start.x(), stop.x()));
+        m_t = std::max(0, std::min(start.y(), stop.y()));
+        m_b = std::min(height, std::max(start.y(), stop.y()));
     }
 }
 

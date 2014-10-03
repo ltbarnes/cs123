@@ -72,7 +72,7 @@ void EdgeFilter::filter(Canvas2D *canvas)
 
             float temp = sqrt(x*x + y*y) * m_threshold;
 
-            pix[ci].b = (unsigned char)(MIN(1, MAX(temp, 0)) * 255);
+            pix[ci].b = (unsigned char)(std::min(1.f, std::max(temp, 0.f)) * 255.f);
             pix[ci].r = pix[ci].b;
             pix[ci].g = pix[ci].b;
 
