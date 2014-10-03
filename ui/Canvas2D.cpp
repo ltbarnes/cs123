@@ -19,7 +19,6 @@
 
 
 #include <QPainter>
-#include "brush/Brush.h"
 #include "brush/ConstantBrush.h"
 #include "brush/LinearBrush.h"
 #include "brush/QuadraticBrush.h"
@@ -27,11 +26,17 @@
 #include "brush/BombBrush.h"
 #include "brush/BubblerBrush.h"
 
+#include "filter/InvertFilter.h"
+#include "filter/GrayscaleFilter.h"
+#include "filter/EdgeFilter.h"
+
 Canvas2D::Canvas2D()
 {
     // @TODO: Initialize any pointers in this class here.
     m_scene = NULL;
     m_brush = NULL;
+    m_filter = NULL;
+    m_oldFilter = -1;
     m_timer = 0;
 
 }
@@ -42,6 +47,8 @@ Canvas2D::~Canvas2D()
     delete m_scene;
     if (m_brush)
         delete m_brush;
+    if (m_filter)
+        delete m_filter;
 
 }
 
@@ -155,30 +162,53 @@ void Canvas2D::filterImage()
 {
     // TODO: [FILTER] Filter the image. Some example code to get the filter type is provided below.
 
-    switch (settings.filterType) {
-    case FILTER_INVERT:
-        cout << "invert!" << endl;
-        m_filter = new Filter();
-        break;
-    case FILTER_GRAYSCALE:
-        break;
-    case FILTER_EDGE_DETECT:
-        break;
-    case FILTER_BLUR:
-        break;
-    case FILTER_SCALE:
-        break;
-    case FILTER_ROTATE:
-        break;
-    case FILTER_SPECIAL_1:
-        break;
-    case FILTER_SPECIAL_2:
-        break;
-    case FILTER_SPECIAL_3:
-        break;
-    default:
-        m_filter = new Filter();
-        break;
+    int filter = settings.filterType;
+
+    if (filter != m_oldFilter) {
+        if (m_filter)
+            delete m_filter;
+
+        switch (filter) {
+        case FILTER_INVERT:
+            m_filter = new InvertFilter();
+            break;
+        case FILTER_GRAYSCALE:
+            m_filter = new GrayscaleFilter();
+            break;
+        case FILTER_EDGE_DETECT:
+            m_filter = new EdgeFilter(settings.edgeDetectThreshold);
+            break;
+        case FILTER_BLUR:
+            break;
+        case FILTER_SCALE:
+            break;
+        case FILTER_ROTATE:
+            break;
+        case FILTER_SPECIAL_1:
+            break;
+        case FILTER_SPECIAL_2:
+            break;
+        case FILTER_SPECIAL_3:
+            break;
+        default:
+            m_filter = new GrayscaleFilter();
+            break;
+        }
+        m_oldFilter = filter;
+    } else {
+        switch(filter) {
+        case FILTER_EDGE_DETECT:
+            ((EdgeFilter *) m_filter)->setThreshold(settings.edgeDetectThreshold);
+            break;
+        case FILTER_BLUR:
+            break;
+        case FILTER_SCALE:
+            break;
+        case FILTER_ROTATE:
+            break;
+        default:
+            break;
+        }
     }
 
     m_filter->filter(this);

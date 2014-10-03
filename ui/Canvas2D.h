@@ -55,6 +55,7 @@ private:
     //TODO: [BRUSH, INTERSECT, RAY] Put your member variables here.
     Brush *m_brush;
     Filter *m_filter;
+    int m_oldFilter;
 
     int m_timer;
 };
