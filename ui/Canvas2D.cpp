@@ -32,6 +32,7 @@
 #include "filter/BlurFilter.h"
 #include "filter/ScaleFilter.h"
 #include "filter/RotateFilter.h"
+#include "filter/FourierFilter.h"
 
 Canvas2D::Canvas2D()
 {
@@ -191,6 +192,7 @@ void Canvas2D::filterImage()
             m_filter = new RotateFilter(settings.rotateAngle);
             break;
         case FILTER_SPECIAL_1:
+            m_filter = new FourierFilter();
             break;
         case FILTER_SPECIAL_2:
             break;

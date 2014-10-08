@@ -26,6 +26,10 @@ void RotateFilter::setAngle(float angle)
 
 void RotateFilter::filter(Canvas2D *canvas)
 {
+    // no rotation
+    if (!m_angle || EQ(fabs(m_angle), 2.f * M_PI))
+        return;
+
     int pad = 2;
 
     setBounds(canvas);
@@ -33,8 +37,6 @@ void RotateFilter::filter(Canvas2D *canvas)
 
     int width = canvas->width();
     int height = canvas->height();
-
-//    cout << width << ", " << height << endl;
 
     glm::vec2 v1, v2, v3;
     v1 = m_R * glm::vec2(0, height);
@@ -46,16 +48,10 @@ void RotateFilter::filter(Canvas2D *canvas)
     float minY = std::min(0.f, std::min(v1.y, std::min(v2.y, v3.y)));
     float maxY = std::max(0.f, std::max(v1.y, std::max(v2.y, v3.y)));
 
-//    cout << minX << ", " << maxX << endl;
-//    cout << minY << ", " << maxY << endl;
-
     width = width + 2*pad;
     height = height + 2*pad;
     int nw = (int) ceil(maxX - minX);
     int nh = (int) ceil(maxY - minY);
-
-//    cout << (maxX - minX) << ", " << (maxY - minY) << endl;
-//    cout << nw << ", " << nh << endl;
 
     canvas->resize(nw, nh);
     BGRA *pix = canvas->data();
@@ -69,13 +65,6 @@ void RotateFilter::filter(Canvas2D *canvas)
     T[2][1] = height / 2.f;
     trans = T * trans;
 
-    for (int y = 0; y < 3; y++) {
-        for (int x = 0; x < 3; x++) {
-            cout << trans[x][y] << ", ";
-        }
-        cout << endl;
-    }
-
     glm::vec3 np = glm::vec3(0.f, 0.f, 1.f);
     glm::vec3 op = glm::vec3(0.f, 0.f, 1.f);
     int ci, fi;
@@ -85,11 +74,7 @@ void RotateFilter::filter(Canvas2D *canvas)
             op.y = y;
 
             np = trans * op;
-//            cout << "OP: ";
-//            printPoint3(op);
-//            cout << "NP: ";
-//            printPoint3(np);
-//            cout << inBounds(np, width, height) << endl;
+
             if (inBounds(np, width, height)) {
                 ci = y * nw + x;
 
@@ -97,8 +82,6 @@ void RotateFilter::filter(Canvas2D *canvas)
                 float weightx = modf(np.x, &modx);
                 float weighty = modf(np.y, &mody);
                 fi = ((int) mody) * width + ((int) modx);
-//                cout << modx << ", " << mody << endl;
-//                cout << weightx << ", " << weighty << endl;
 
                 fillPixel(&pix[ci], fi, width, weightx, weighty);
             }
@@ -109,7 +92,7 @@ void RotateFilter::filter(Canvas2D *canvas)
 
 bool RotateFilter::inBounds(glm::vec3 p, int w, int h)
 {
-    return p.x >= 0 && p.x < w && p.y >= 0 && p.y < h;
+    return p.x >= 0 && p.x < w - 1 && p.y >= 0 && p.y < h - 1;
 }
 
 
@@ -135,5 +118,4 @@ void RotateFilter::fillPixel(BGRA *pix, int i, int width, float wxr, float wyb)
              bl->b * wxl * wyb +
              br->b * wxr * wyb +
              tr->b * wxr * wyt;
-
 }

@@ -17,7 +17,7 @@ private:
     bool inBounds(glm::vec3 p, int w, int h);
     void fillPixel(BGRA *pix, int i, int width, float wxr, float wyb);
 
-    float m_angle;
+    double m_angle;
     glm::mat2 m_R;
 };
 

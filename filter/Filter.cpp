@@ -112,16 +112,16 @@ void Filter::makeFilterCanvas(Canvas2D *canvas, int padding, bool black)
     if (black)
         delete[] blkarray;
 
-//    for (int row = m_t; row < m_b; row++) {
-//        for (int col = m_l; col < m_r; col++) {
-//            ci = width * row + col;
-//            fi = (row + padding - m_t) * padw + (col + padding - m_l);
+    for (int row = m_t; row < m_b; row++) {
+        for (int col = m_l; col < m_r; col++) {
+            ci = width * row + col;
+            fi = (row + padding - m_t) * padw + (col + padding - m_l);
 
-//            assert(pix[ci].r == m_filter_canvas[fi].r);
-//            assert(pix[ci].g == m_filter_canvas[fi].g);
-//            assert(pix[ci].b == m_filter_canvas[fi].b);
-//        }
-//    }
+            assert(pix[ci].r == m_filter_canvas[fi].r);
+            assert(pix[ci].g == m_filter_canvas[fi].g);
+            assert(pix[ci].b == m_filter_canvas[fi].b);
+        }
+    }
 }
 
 
