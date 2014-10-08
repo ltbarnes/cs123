@@ -13,10 +13,12 @@ public:
 
     virtual void filter(Canvas2D *canvas) = 0;
     void printPoint(QPoint p);
+    void printPoint3(glm::vec3 p);
 
 protected:
     virtual void setBounds(Canvas2D *canvas);
-    void makeFilterCanvas(Canvas2D *canvas, int padding);
+    void makeFilterCanvas(Canvas2D *canvas, int padding, bool black);
+    void filter1DTwice(Canvas2D *canvas, int radius, float *horizf, float *vertf);
     void grayscale(Canvas2D *canvas);
 
     BGRA *m_filter_canvas;

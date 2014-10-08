@@ -25,8 +25,9 @@ void EdgeFilter::filter(Canvas2D *canvas)
 
     setBounds(canvas);
     grayscale(canvas);
-    makeFilterCanvas(canvas, pad);
+    makeFilterCanvas(canvas, pad, false);
 
+//    filter1DTwice(canvas, 1, sobel1, sobel2);
 
     BGRA *pix = canvas->data();
     int width = canvas->width();
@@ -34,7 +35,7 @@ void EdgeFilter::filter(Canvas2D *canvas)
     int padw = (m_r - m_l) + 2 * pad;
     int padh = (m_b - m_t) + 2 * pad;
 
-    int nwidth = padw-2;
+    int nwidth = padw-2*pad;
     int size = nwidth * padh * 2;
     float *nums = new float[size];
 
@@ -43,7 +44,7 @@ void EdgeFilter::filter(Canvas2D *canvas)
 
     int ci, fi;
     for (int row = 0; row < padh; row++) {
-        for (int col = 1; col < padw - 1; col++) {
+        for (int col = pad; col < padw - pad; col++) {
             fi = (row) * padw + (col);
             ci = 2 * (row * nwidth + (col - 1));
 
@@ -61,7 +62,7 @@ void EdgeFilter::filter(Canvas2D *canvas)
         for (int col = m_l; col < m_r; col++) {
             ci = width * row + col;
             fi = 2*((row - m_t + pad) * nwidth + (col - m_l));
-            offset = 2*(padw-2);
+            offset = 2*nwidth;
 
             float x = sobel2[0] * nums[fi-offset] +
                       sobel2[1] * nums[fi] +

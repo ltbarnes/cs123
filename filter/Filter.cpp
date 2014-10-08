@@ -37,7 +37,7 @@ void Filter::setBounds(Canvas2D *canvas)
 }
 
 
-void Filter::makeFilterCanvas(Canvas2D *canvas, int padding)
+void Filter::makeFilterCanvas(Canvas2D *canvas, int padding, bool black)
 {
     int width = canvas->width();
 
@@ -56,6 +56,10 @@ void Filter::makeFilterCanvas(Canvas2D *canvas, int padding)
     int size = padw * padh;
     m_filter_canvas = new BGRA[size];
 
+    BGRA blk = m_filter_canvas[0];
+    blk.r = 0; blk.g = 0; blk.b = 0;
+    blk.a = 255;
+
     int ci, fi;
     BGRA *start;
     for (int row = m_t; row < m_b; row++) {
@@ -64,9 +68,14 @@ void Filter::makeFilterCanvas(Canvas2D *canvas, int padding)
 
         if (padding <= fw) {
             for (int p = 0; p < padding; p++) {
-                m_filter_canvas[fi + p] = pix[ci + padding - p - 1];
-                m_filter_canvas[fi + padding + fw + p] =
-                        pix[ci + fw - p - 1];
+                if (black) {
+                    m_filter_canvas[fi + p] = blk;
+                    m_filter_canvas[fi + padding + fw + p] = blk;
+                } else {
+                    m_filter_canvas[fi + p] = pix[ci + padding - p - 1];
+                    m_filter_canvas[fi + padding + fw + p] =
+                            pix[ci + fw - p - 1];
+                }
             }
         } else {
             // TODO: SET PADDING TO ONE COLOR!!!
@@ -75,29 +84,50 @@ void Filter::makeFilterCanvas(Canvas2D *canvas, int padding)
         start = pix + ci;
         std::copy(start, start + fw, m_filter_canvas + fi + padding);
     }
+    BGRA *blkarray;
+    if (black) {
+        blkarray = new BGRA[padw];
+        for (int i = 0; i < padw; i++)
+            blkarray[i] = blk;
+    }
 
     for (int p = 0; p < padding; p++) {
         fi = (padding + p) * padw;
 
         start = m_filter_canvas + fi;
-        std::copy(start, start + padw, start - padw * (2*p + 1));
+        if (black)
+            std::copy(blkarray, blkarray + padw, start - padw * (2*p + 1));
+        else
+            std::copy(start, start + padw, start - padw * (2*p + 1));
 
         fi = (padding + fh - 1 - p) * padw;
 
         start = m_filter_canvas + fi;
-        std::copy(start, start + padw, start + padw * (2*p + 1));
+        if (black)
+            std::copy(blkarray, blkarray + padw, start + padw * (2*p + 1));
+        else
+            std::copy(start, start + padw, start + padw * (2*p + 1));
     }
 
-    for (int row = m_t; row < m_b; row++) {
-        for (int col = m_l; col < m_r; col++) {
-            ci = width * row + col;
-            fi = (row + padding - m_t) * padw + (col + padding - m_l);
+    if (black)
+        delete[] blkarray;
 
-            assert(pix[ci].r == m_filter_canvas[fi].r);
-            assert(pix[ci].g == m_filter_canvas[fi].g);
-            assert(pix[ci].b == m_filter_canvas[fi].b);
-        }
-    }
+//    for (int row = m_t; row < m_b; row++) {
+//        for (int col = m_l; col < m_r; col++) {
+//            ci = width * row + col;
+//            fi = (row + padding - m_t) * padw + (col + padding - m_l);
+
+//            assert(pix[ci].r == m_filter_canvas[fi].r);
+//            assert(pix[ci].g == m_filter_canvas[fi].g);
+//            assert(pix[ci].b == m_filter_canvas[fi].b);
+//        }
+//    }
+}
+
+
+void Filter::filter1DTwice(Canvas2D *canvas, int radius, float *horizf, float *vertf)
+{
+
 }
 
 
@@ -127,5 +157,14 @@ void Filter::printPoint(QPoint p)
 {
     cout << "(" << p.x();
     cout << ", " << p.y();
+    cout << ")" << endl;
+}
+
+
+void Filter::printPoint3(glm::vec3 p)
+{
+    cout << "(" << p.x;
+    cout << ", " << p.y;
+    cout << ", " << p.z;
     cout << ")" << endl;
 }

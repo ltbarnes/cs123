@@ -29,6 +29,9 @@
 #include "filter/InvertFilter.h"
 #include "filter/GrayscaleFilter.h"
 #include "filter/EdgeFilter.h"
+#include "filter/BlurFilter.h"
+#include "filter/ScaleFilter.h"
+#include "filter/RotateFilter.h"
 
 Canvas2D::Canvas2D()
 {
@@ -179,10 +182,13 @@ void Canvas2D::filterImage()
             m_filter = new EdgeFilter(settings.edgeDetectThreshold);
             break;
         case FILTER_BLUR:
+            m_filter = new BlurFilter(settings.blurRadius);
             break;
         case FILTER_SCALE:
+            m_filter = new ScaleFilter(settings.scaleX, settings.scaleY);
             break;
         case FILTER_ROTATE:
+            m_filter = new RotateFilter(settings.rotateAngle);
             break;
         case FILTER_SPECIAL_1:
             break;
@@ -201,10 +207,14 @@ void Canvas2D::filterImage()
             ((EdgeFilter *) m_filter)->setThreshold(settings.edgeDetectThreshold);
             break;
         case FILTER_BLUR:
+            ((BlurFilter *) m_filter)->setRadius(settings.blurRadius);
             break;
         case FILTER_SCALE:
+            ((ScaleFilter *) m_filter)->setXScale(settings.scaleX);
+            ((ScaleFilter *) m_filter)->setYScale(settings.scaleY);
             break;
         case FILTER_ROTATE:
+            ((RotateFilter *) m_filter)->setAngle(settings.rotateAngle);
             break;
         default:
             break;
