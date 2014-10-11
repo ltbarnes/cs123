@@ -33,6 +33,7 @@
 #include "filter/ScaleFilter.h"
 #include "filter/RotateFilter.h"
 #include "filter/FourierFilter.h"
+#include "filter/SharpenFilter.h"
 
 Canvas2D::Canvas2D()
 {
@@ -166,10 +167,12 @@ void Canvas2D::filterImage()
 {
     // TODO: [FILTER] Filter the image. Some example code to get the filter type is provided below.
 
-    int filter = settings.filterType;
+    int filter;
+    if ((filter = settings.filterType) == FILTER_SPECIAL_2)
+        filter = FILTER_SPECIAL_1;
 
     if (filter != m_oldFilter) {
-        if (m_filter)
+        if (m_filter && filter)
             delete m_filter;
 
         switch (filter) {
@@ -193,10 +196,11 @@ void Canvas2D::filterImage()
             break;
         case FILTER_SPECIAL_1:
             m_filter = new FourierFilter();
-            break;
-        case FILTER_SPECIAL_2:
+            if (settings.filterType == FILTER_SPECIAL_2)
+                ((FourierFilter *) m_filter)->calcInverse(true);
             break;
         case FILTER_SPECIAL_3:
+            m_filter = new SharpenFilter();
             break;
         default:
             m_filter = new GrayscaleFilter();
@@ -217,6 +221,12 @@ void Canvas2D::filterImage()
             break;
         case FILTER_ROTATE:
             ((RotateFilter *) m_filter)->setAngle(settings.rotateAngle);
+            break;
+        case FILTER_SPECIAL_1:
+            if (settings.filterType == FILTER_SPECIAL_2)
+                ((FourierFilter *) m_filter)->calcInverse(true);
+            else
+                ((FourierFilter *) m_filter)->calcInverse(false);
             break;
         default:
             break;
