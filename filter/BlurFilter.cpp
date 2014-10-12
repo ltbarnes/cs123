@@ -71,13 +71,14 @@ void BlurFilter::filter(Canvas2D *canvas)
 
         }
     }
+    delete[] nums;
     canvas->repaint();
 }
 
 
 void BlurFilter::setRadius(int radius)
 {
-    m_radius = radius;
+    m_radius = radius + 1;
     buildFilter();
 }
 
@@ -103,7 +104,7 @@ void BlurFilter::buildFilter()
     } else {
         // triangle
         float b = 1.f / (m_radius);
-        float m = b / -m_radius;
+        float m = b / -(m_radius);
         for (int x = -m_radius; x <= m_radius; x++) {
             m_f[x + m_radius] = m*abs(x) + b;
         }

@@ -30,11 +30,12 @@ protected:
     void applyThreshold(std::complex<double> *Fr, std::complex<double> *Fg, std::complex<double> *Fb, int w, int h, float min, float max);
 
 
-private:
+protected:
     std::complex<double> *m_Fr;
     std::complex<double> *m_Fg;
     std::complex<double> *m_Fb;
 
+private:
     bool m_inverse;
     bool m_hasInverse;
 };

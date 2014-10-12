@@ -66,19 +66,17 @@ void Filter::makeFilterCanvas(Canvas2D *canvas, int padding, bool black)
         ci = width * row + m_l;
         fi = (row + padding - m_t) * padw;
 
-        if (padding <= fw) {
+        if (padding > fw || black) {
             for (int p = 0; p < padding; p++) {
-                if (black) {
-                    m_filter_canvas[fi + p] = blk;
-                    m_filter_canvas[fi + padding + fw + p] = blk;
-                } else {
-                    m_filter_canvas[fi + p] = pix[ci + padding - p - 1];
-                    m_filter_canvas[fi + padding + fw + p] =
-                            pix[ci + fw - p - 1];
-                }
+                m_filter_canvas[fi + p] = blk;
+                m_filter_canvas[fi + padding + fw + p] = blk;
             }
         } else {
-            // TODO: SET PADDING TO ONE COLOR!!!
+            for (int p = 0; p < padding; p++) {
+                m_filter_canvas[fi + p] = pix[ci + padding - p - 1];
+                m_filter_canvas[fi + padding + fw + p] =
+                            pix[ci + fw - p - 1];
+            }
         }
 
         start = pix + ci;

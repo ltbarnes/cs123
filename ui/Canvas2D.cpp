@@ -172,7 +172,7 @@ void Canvas2D::filterImage()
         filter = FILTER_SPECIAL_1;
 
     if (filter != m_oldFilter) {
-        if (m_filter && filter)
+        if (m_filter)
             delete m_filter;
 
         switch (filter) {
