@@ -70,6 +70,36 @@ public:
     // Sets the near and far clip planes for this camera.
     void setClip(float nearPlane, float farPlane);
 
+private:
+    // Camera vecs
+    glm::vec4 m_eye;
+    glm::vec4 m_look;
+    glm::vec4 m_up;
+
+    // Camera space
+    glm::vec4 m_u;
+    glm::vec4 m_v;
+    glm::vec4 m_w;
+
+    // View matrices
+    glm::mat4x4 m_trans;
+    glm::mat4x4 m_rot;
+
+    // Projection matrices
+    glm::mat4x4 m_scale;
+    glm::mat4x4 m_perspective;
+
+    // View variables
+    float m_near, m_far, m_heightDegrees, m_aspectRatio;
+
+    // Helpers
+    void setCameraSpace();
+    void setViewMatrices();
+    void setProjectionMatrices();
+
+    // For debugging
+    void printVec(glm::vec4 v);
+
 };
 
 #endif // CAMTRANSCAMERA_H
