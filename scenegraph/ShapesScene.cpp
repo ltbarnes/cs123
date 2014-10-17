@@ -7,7 +7,6 @@
 #include "shapes/Sphere.h"
 #include "shapes/Cylinder.h"
 #include "shapes/Torus.h"
-#include "shapes/Special1.h"
 #include "shapes/Ripple.h"
 #include "shapes/RippleSphere.h"
 
