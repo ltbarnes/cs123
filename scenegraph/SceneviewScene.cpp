@@ -7,7 +7,7 @@
 SceneviewScene::SceneviewScene()
 {
     // TODO: [SCENEVIEW] Set up anything you need for your Sceneview scene here...
-
+    assert(0);
 }
 
 SceneviewScene::~SceneviewScene()

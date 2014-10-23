@@ -63,6 +63,7 @@ void Canvas3D::initializeGL()
     m_initialized = true;
 
     m_timer = this->startTimer(50); // 20fps
+    m_useSceneviewSceneOld = settings.useSceneviewScene;
 }
 
 
@@ -99,13 +100,15 @@ void Canvas3D::paintGL()
 
 void Canvas3D::timerEvent(QTimerEvent *)
 {
-    ShapesScene *scene = (ShapesScene *)this->getScene();
-    bool render = scene->animate();
+    if (!settings.useSceneviewScene) {
+        ShapesScene *scene = (ShapesScene *)this->getScene();
+        bool render = scene->animate();
 
-    // if the shape can be animated and needs to be re-rendered
-    if (render) {
-        scene->updateShape();
-        SupportCanvas3D::settingsChanged();
+        // if the shape can be animated and needs to be re-rendered
+        if (render) {
+            scene->updateShape();
+            SupportCanvas3D::settingsChanged();
+        }
     }
 }
 
@@ -113,8 +116,11 @@ void Canvas3D::timerEvent(QTimerEvent *)
 void Canvas3D::settingsChanged()
 {
     // TODO: Process changes to the application settings.
-    ShapesScene *scene = (ShapesScene *)this->getScene();
-    scene->update();
+    if (!settings.useSceneviewScene && !m_useSceneviewSceneOld) {
+        ShapesScene *scene = (ShapesScene *)this->getScene();
+        scene->update();
+    }
+    m_useSceneviewSceneOld = settings.useSceneviewScene;
 
     // Call superclass (this repaints the scene for you)
     SupportCanvas3D::settingsChanged();

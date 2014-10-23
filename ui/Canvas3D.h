@@ -30,6 +30,7 @@ protected:
 
 private:
     int m_timer;
+    bool m_useSceneviewSceneOld;
 };
 
 #endif // CANVAS3D_H

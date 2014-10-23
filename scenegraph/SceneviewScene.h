@@ -3,6 +3,7 @@
 
 #include "OpenGLScene.h"
 #include "SelectionRecorder.h"
+#include "shapes/Shape.h"
 
 
 /**
@@ -43,6 +44,8 @@ public:
     void setSelection(int x, int y);
 
 private:
+    QList<Shape> m_shapes;
+
     // This will help you during the "modeler" lab, so don't worry about it for now.
     SelectionRecorder m_selectionRecorder;
     int m_selectionIndex;
