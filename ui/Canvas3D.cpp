@@ -18,6 +18,7 @@ Canvas3D::~Canvas3D()
 
 void Canvas3D::initializeGL()
 {
+    cout << "init" << endl;
     // Track the camera settings so we can generate deltas
     m_oldPosX = settings.cameraPosX;
     m_oldPosY = settings.cameraPosY;
@@ -63,6 +64,7 @@ void Canvas3D::initializeGL()
     m_initialized = true;
 
     m_timer = this->startTimer(50); // 20fps
+    m_useSceneviewSceneOld = settings.useSceneviewScene;
 }
 
 
@@ -77,6 +79,7 @@ void Canvas3D::paintGL()
         if ((err = glGetError()) != GL_NO_ERROR) {
             fprintf(stderr, "GL is in an error state before painting.\n");
             fprintf(stderr, "(GL error code %d)\n", err);
+            fprintf(stderr, "%s\n", glewGetErrorString(err));
         }
 
         // Update the scene camera.
@@ -99,13 +102,15 @@ void Canvas3D::paintGL()
 
 void Canvas3D::timerEvent(QTimerEvent *)
 {
-    ShapesScene *scene = (ShapesScene *)this->getScene();
-    bool render = scene->animate();
+    if (!settings.useSceneviewScene) {
+        ShapesScene *scene = (ShapesScene *)this->getScene();
+        bool render = scene->animate();
 
-    // if the shape can be animated and needs to be re-rendered
-    if (render) {
-        scene->updateShape();
-        SupportCanvas3D::settingsChanged();
+        // if the shape can be animated and needs to be re-rendered
+        if (render) {
+            scene->updateShape();
+            SupportCanvas3D::settingsChanged();
+        }
     }
 }
 
@@ -113,8 +118,11 @@ void Canvas3D::timerEvent(QTimerEvent *)
 void Canvas3D::settingsChanged()
 {
     // TODO: Process changes to the application settings.
-    ShapesScene *scene = (ShapesScene *)this->getScene();
-    scene->update();
+    if (!settings.useSceneviewScene && !m_useSceneviewSceneOld) {
+        ShapesScene *scene = (ShapesScene *)this->getScene();
+        scene->update();
+    }
+    m_useSceneviewSceneOld = settings.useSceneviewScene;
 
     // Call superclass (this repaints the scene for you)
     SupportCanvas3D::settingsChanged();

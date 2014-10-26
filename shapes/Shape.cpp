@@ -5,6 +5,7 @@ Shape::Shape()
     m_numVerts = 6;
     m_vertexData = NULL;
     m_vaoID = 0;
+    m_vboID = 0;
 
     setParamMax(-1, -1, -1.f);
 }
@@ -14,6 +15,8 @@ Shape::~Shape()
     cleanUp();
     if (m_vaoID)
         glDeleteVertexArrays(1, &m_vaoID);
+    if (m_vboID)
+        glDeleteBuffers(1, &m_vboID);
 }
 
 
@@ -75,15 +78,16 @@ void Shape::updateGL(GLuint shader)
 {
     if (m_vaoID)
         glDeleteVertexArrays(1, &m_vaoID);
+    if (m_vboID)
+        glDeleteBuffers(1, &m_vboID);
 
     // Initialize the vertex array object.
     glGenVertexArrays(1, &m_vaoID);
     glBindVertexArray(m_vaoID);
 
     // Initialize the vertex buffer object.
-    GLuint vertexBuffer;
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glGenBuffers(1, &m_vboID);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
 
     glBufferData(GL_ARRAY_BUFFER, 3 * m_numVerts * sizeof(GLfloat), m_vertexData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(glGetAttribLocation(shader, "position"));
@@ -108,9 +112,6 @@ void Shape::updateGL(GLuint shader)
     // Unbind buffers.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    // Clean up
-    glDeleteBuffers(1, &vertexBuffer);
 }
 
 void Shape::updateNormals(NormalRenderer *normRenderer)

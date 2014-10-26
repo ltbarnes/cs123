@@ -7,7 +7,6 @@
 #include "shapes/Sphere.h"
 #include "shapes/Cylinder.h"
 #include "shapes/Torus.h"
-#include "shapes/Special1.h"
 #include "shapes/Ripple.h"
 #include "shapes/RippleSphere.h"
 
@@ -41,6 +40,8 @@ ShapesScene::ShapesScene()
                 settings.shapeParameter2,
                 settings.shapeParameter3
                 );
+
+    m_initialized = false;
 }
 
 ShapesScene::~ShapesScene()
@@ -57,6 +58,7 @@ void ShapesScene::init()
     this->setShape();
     this->updateShape();
 
+    m_initialized = true;
 }
 
 
@@ -148,6 +150,9 @@ void ShapesScene::update()
 
 void ShapesScene::renderGeometry()
 {
+
+    if (!m_initialized)
+        return;
 
     applyMaterial(m_material);
 
