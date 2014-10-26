@@ -18,6 +18,7 @@ Canvas3D::~Canvas3D()
 
 void Canvas3D::initializeGL()
 {
+    cout << "init" << endl;
     // Track the camera settings so we can generate deltas
     m_oldPosX = settings.cameraPosX;
     m_oldPosY = settings.cameraPosY;
@@ -78,6 +79,7 @@ void Canvas3D::paintGL()
         if ((err = glGetError()) != GL_NO_ERROR) {
             fprintf(stderr, "GL is in an error state before painting.\n");
             fprintf(stderr, "(GL error code %d)\n", err);
+            fprintf(stderr, "%s\n", glewGetErrorString(err));
         }
 
         // Update the scene camera.

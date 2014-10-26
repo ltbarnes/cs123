@@ -31,6 +31,7 @@ protected:
     void setParamMax(int p1, int p2, float p3);
 
     GLuint m_vaoID; // The vertex array object ID, which is passed to glBindVertexArray.
+    GLuint m_vboID;
     GLfloat *m_vertexData;
 
     int m_p1;

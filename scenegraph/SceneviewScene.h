@@ -4,6 +4,11 @@
 #include "OpenGLScene.h"
 #include "SelectionRecorder.h"
 #include "shapes/Shape.h"
+#include "shapes/Cone.h"
+#include "shapes/Cube.h"
+#include "shapes/Cylinder.h"
+#include "shapes/Sphere.h"
+#include "shapes/Torus.h"
 
 
 /**
@@ -44,7 +49,13 @@ public:
     void setSelection(int x, int y);
 
 private:
-    QList<Shape> m_shapes;
+    Shape *m_cone;
+    Shape *m_cube;
+    Shape *m_cylinder;
+    Shape *m_sphere;
+    Shape *m_torus;
+
+    void updateShape(Shape *shape);
 
     // This will help you during the "modeler" lab, so don't worry about it for now.
     SelectionRecorder m_selectionRecorder;

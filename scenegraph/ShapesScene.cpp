@@ -40,6 +40,8 @@ ShapesScene::ShapesScene()
                 settings.shapeParameter2,
                 settings.shapeParameter3
                 );
+
+    m_initialized = false;
 }
 
 ShapesScene::~ShapesScene()
@@ -56,6 +58,7 @@ void ShapesScene::init()
     this->setShape();
     this->updateShape();
 
+    m_initialized = true;
 }
 
 
@@ -147,6 +150,9 @@ void ShapesScene::update()
 
 void ShapesScene::renderGeometry()
 {
+
+    if (!m_initialized)
+        return;
 
     applyMaterial(m_material);
 
