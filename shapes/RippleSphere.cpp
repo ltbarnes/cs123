@@ -23,8 +23,8 @@ RippleSphere::~RippleSphere()
 void RippleSphere::calcVerts()
 {
     // ((slices * verts per slice) - first and last vert) * 2 for normals
-    m_numVerts = ((m_p2 * (m_p1 + 1) * 2) - 2) * 2;
-    int size = m_numVerts * 3; // 3 points per vertex
+    m_numVerts = ((m_p2 * (m_p1 + 1) * 2) - 2);
+    int size = m_numVerts * 8; // 3 points per vertex
     m_vertexData = new GLfloat[size];
 
     float prev = 0;

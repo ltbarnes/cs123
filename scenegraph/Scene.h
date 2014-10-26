@@ -33,18 +33,20 @@ protected:
     // Sets the global data for the scene.
     virtual void setGlobal(const CS123SceneGlobalData &global);
 
-    QList<CS123ScenePrimitive> m_shapes;
-    QList<glm::mat4> m_trans;
-    // Storage for private copies of the scene's light and material data. Note that these don't
-    // need to be freed because they are VALUE types (not pointers) and the memory for them is
-    // freed when the class itself is freed.
+    int loadTexture(const QString &filename);
+
     CS123SceneGlobalData m_global;
-    QList<CS123SceneLightData>  m_lights;
+    QList<CS123SceneLightData*>  m_lights;
+    QList<CS123ScenePrimitive*> m_shapes;
+    QList<glm::mat4> m_trans;
+    QHash<QString, int> m_textures;
 
     bool m_initialized;
 
 private:
     void nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans);
+    void copyFileMap(CS123SceneFileMap *fm1, CS123SceneFileMap *fm2);
+    void setColor(CS123SceneColor *dest, CS123SceneColor *src, float constant);
 };
 
 #endif // SCENE_H

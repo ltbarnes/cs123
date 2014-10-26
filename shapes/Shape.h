@@ -19,13 +19,15 @@ public:
 
     virtual bool usesParam(int num);
     virtual void calcVerts();
-    virtual void render();
+    void render();
+    void renderTransform(GLuint shader, glm::mat4 trans);
 
     virtual bool animate();
 
 protected:
 
     void addVertex(int *i, glm::vec3 v, glm::vec3 norm);
+    void addVertexT(int *i, glm::vec3 v, glm::vec3 norm, glm::vec2 tex);
 
     void printVert(glm::vec3 v);
     void setParamMax(int p1, int p2, float p3);

@@ -1,12 +1,14 @@
 #include "SceneviewScene.h"
 #include "GL/glew.h"
+#include <qgl.h>
 #include <QGLWidget>
+#include <QFile>
 #include "Camera.h"
 
 SceneviewScene::SceneviewScene()
 {
     // TODO: [SCENEVIEW] Set up anything you need for your Sceneview scene here...
-    int param = 20;
+    int param = 50;
     m_cone = new Cone(param, param, 0.5f, 0.5f);
     m_cube = new Cube(param, 0.5f);
     m_cylinder = new Cylinder(param, param, 0.5f, 0.5f);
@@ -24,7 +26,6 @@ SceneviewScene::~SceneviewScene()
     delete m_cylinder;
     delete m_sphere;
     delete m_torus;
-
 }
 
 
@@ -47,6 +48,20 @@ void SceneviewScene::init()
     updateShape(m_sphere);
     updateShape(m_torus);
 
+    QString filename;
+    QList<QString> keys = m_textures.keys();
+    int num_keys = keys.size();
+
+    for (int i = 0; i < num_keys; i++)
+    {
+        filename = keys.at(i);
+        int texId = loadTexture(filename);
+        if (texId == -1)
+            cout << "Texture '" << filename.toStdString() << "' does not exist" << endl;
+        else
+            m_textures.insert(filename, texId);
+    }
+
     m_initialized = true;
 }
 
@@ -57,7 +72,7 @@ void SceneviewScene::setLights(const glm::mat4 viewMatrix)
     // Use function(s) inherited from OpenGLScene to set up the lighting for your scene.
     // The lighting information will most likely be stored in CS123SceneLightData structures.
     //
-    CS123SceneLightData light;
+    CS123SceneLightData *light;
 
     int num_lights = m_lights.size();
     int i;
@@ -65,8 +80,8 @@ void SceneviewScene::setLights(const glm::mat4 viewMatrix)
     for (i = 0; i < num_lights; i++) {
         light = m_lights.at(i);
 
-        light.dir = glm::inverse(viewMatrix) * light.dir;
-        setLight(light);
+        light->dir = glm::inverse(viewMatrix) * light->dir;
+        setLight(*light);
     }
 }
 
@@ -84,35 +99,46 @@ void SceneviewScene::renderGeometry()
     int i;
 
     for (i = 0; i < num_shapes; i++) {
-        CS123ScenePrimitive sp = m_shapes.at(i);
+        CS123ScenePrimitive *sp = m_shapes.at(i);
 
-        applyMaterial(sp.material);
-        glUniformMatrix4fv(glGetUniformLocation(m_shader, "m"),
-                           1, GL_FALSE, glm::value_ptr(m_trans.at(i)));
+        applyMaterial(sp->material);
 //        cout << glm::to_string(m_trans.at(i)).c_str() << endl;
 
-        switch (sp.type) {
+        switch (sp->type) {
         case PRIMITIVE_CUBE:
-            m_cube->render();
+//            cout << "Cube: ";
+            m_cube->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_CONE:
-            m_cone->render();
+//            cout << "Cone: ";
+            m_cone->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_CYLINDER:
-            m_cylinder->render();
+//            cout << "Cylinder: ";
+            m_cylinder->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_SPHERE:
-//            m_sphere->render();
+//            cout << "Sphere: ";
+            m_sphere->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_TORUS:
-            m_torus->render();
+//            cout << "Torus: ";
+            m_torus->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_MESH:
-            cout << sp.meshfile << endl;
+            m_sphere->renderTransform(m_shader, m_trans.at(i));
             break;
         default:
             break;
         }
+
+//        cout << sp->material.textureMap->filename << endl;
+//        cout << sp->material.textureMap->repeatU << ", ";
+//        cout << sp->material.textureMap->repeatV << endl;
+
+//        cout << sp.material.cDiffuse.r << ", ";
+//        cout << sp.material.cDiffuse.g << ", ";
+//        cout << sp.material.cDiffuse.b << endl;
     }
 }
 
@@ -137,3 +163,5 @@ void SceneviewScene::setSelection(int x, int y)
     // 4) Find out which object you selected, if any (-1 means no selection).
     m_selectionIndex = m_selectionRecorder.exitSelectionMode();
 }
+
+

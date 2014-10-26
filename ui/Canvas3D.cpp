@@ -18,7 +18,6 @@ Canvas3D::~Canvas3D()
 
 void Canvas3D::initializeGL()
 {
-    cout << "init" << endl;
     // Track the camera settings so we can generate deltas
     m_oldPosX = settings.cameraPosX;
     m_oldPosY = settings.cameraPosY;

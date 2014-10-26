@@ -18,8 +18,8 @@ Ripple::~Ripple()
 void Ripple::calcVerts()
 {
     int w = m_p1 + 1;
-    m_numVerts = ((((2 * w) - 1) * m_p1) + 1) * 2; // for normals
-    int size = m_numVerts * 3;
+    m_numVerts = ((((2 * w) - 1) * m_p1) + 1); // for normals
+    int size = m_numVerts * 8;
     m_vertexData = new GLfloat[size];
 
     double spacing = m_radius * 2.0 / m_p1;

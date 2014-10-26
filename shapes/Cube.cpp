@@ -19,8 +19,8 @@ void Cube::calcVerts()
 {
     // 6 sides * 2w verts * p1 strips * 2 for normals
     int w = m_p1 + 1;
-    m_numVerts = (6 * ((2 * w + 2) * m_p1) - 2) * 2; // for normals
-    int size = m_numVerts * 3;
+    m_numVerts = (6 * ((2 * w + 2) * m_p1) - 2);
+    int size = m_numVerts * 8;
     m_vertexData = new GLfloat[size];
 
     double spacing = m_halfWidth * 2.0 / m_p1;
@@ -33,7 +33,6 @@ void Cube::calcVerts()
     makeSide(&index, glm::vec3(0, -1, 0), spacing, false, false);
     makeSide(&index, glm::vec3(-1, 0, 0), spacing, false, false);
     makeSide(&index, glm::vec3(0, 0, -1), spacing, false, true);
-
 }
 
 

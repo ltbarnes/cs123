@@ -2,7 +2,7 @@
 
 Shape::Shape()
 {
-    m_numVerts = 6;
+    m_numVerts = 4;
     m_vertexData = NULL;
     m_vaoID = 0;
     m_vboID = 0;
@@ -62,15 +62,16 @@ bool Shape::usesParam(int num)
 
 void Shape::calcVerts()
 {
-    int size = m_numVerts * 3;
+    int size = m_numVerts * 8;
     m_vertexData = new GLfloat[size];
 
     int index = 0;
     glm::vec3 norm = glm::vec3(0, 0, 1);
 
-    addVertex(&index, glm::vec3(-1, -1, 0), norm);
-    addVertex(&index, glm::vec3(1, -1, 0), norm);
-    addVertex(&index, glm::vec3(0, 1, 0), norm);
+    addVertexT(&index, glm::vec3(-.5f, -.5f, 0), norm, glm::vec2(0.f, 1.f));
+    addVertexT(&index, glm::vec3(.5f, -.5f, 0), norm, glm::vec2(1.f, 1.f));
+    addVertexT(&index, glm::vec3(-.5, .5, 0), norm, glm::vec2(0.f, 0.f));
+    addVertexT(&index, glm::vec3(.5, .5, 0), norm, glm::vec2(1.f, 0.f));
 }
 
 
@@ -89,24 +90,38 @@ void Shape::updateGL(GLuint shader)
     glGenBuffers(1, &m_vboID);
     glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
 
-    glBufferData(GL_ARRAY_BUFFER, 3 * m_numVerts * sizeof(GLfloat), m_vertexData, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(glGetAttribLocation(shader, "position"));
+    glBufferData(GL_ARRAY_BUFFER, 8 * m_numVerts * sizeof(GLfloat), m_vertexData, GL_STATIC_DRAW);
+
+    GLuint position = glGetAttribLocation(shader, "position");
+    GLuint normal = glGetAttribLocation(shader, "normal");
+    GLuint texCoord = glGetAttribLocation(shader, "texCoord");
+
+    glEnableVertexAttribArray(position);
     glVertexAttribPointer(
-        glGetAttribLocation(shader, "position"),
+        position,
         3,                   // Num coordinates per position
         GL_FLOAT,            // Type
         GL_FALSE,            // Normalized
-        sizeof(GLfloat) * 6, // Stride
+        sizeof(GLfloat) * 8, // Stride
         (void*) 0            // Array buffer offset
     );
-    glEnableVertexAttribArray(glGetAttribLocation(shader, "normal"));
+    glEnableVertexAttribArray(normal);
     glVertexAttribPointer(
-        glGetAttribLocation(shader, "normal"),
+        normal,
         3,                              // Num coordinates per normal
         GL_FLOAT,                       // Type
         GL_TRUE,                        // Normalized
-        sizeof(GLfloat) * 6,            // Stride
+        sizeof(GLfloat) * 8,            // Stride
         (void*) (sizeof(GLfloat) * 3)   // Array buffer offset
+    );
+    glEnableVertexAttribArray(texCoord);
+    glVertexAttribPointer(
+        texCoord,
+        2,                              // Num coordinates per position
+        GL_FLOAT,                       // Type
+        GL_TRUE,                        // Normalized
+        sizeof(GLfloat) * 8,            // Stride
+        (void*) (sizeof(GLfloat) * 6)   // Array buffer offset
     );
 
     // Unbind buffers.
@@ -118,10 +133,10 @@ void Shape::updateNormals(NormalRenderer *normRenderer)
 {
     normRenderer->generateArrays(
                 m_vertexData,           // Pointer to vertex data
-                6 * sizeof(GLfloat),    // Stride (distance between consecutive vertices/normals in BYTES
+                8 * sizeof(GLfloat),    // Stride (distance between consecutive vertices/normals in BYTES
                 0,                      // Offset of first position in BYTES
                 3 * sizeof(GLfloat),    // Offset of first normal in BYTES
-                m_numVerts / 2);
+                m_numVerts);
 }
 
 void Shape::cleanUp()
@@ -136,7 +151,16 @@ void Shape::cleanUp()
 void Shape::render()
 {
         glBindVertexArray(m_vaoID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts / 2); /* Number of vertices to draw (w/o normals) */
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts); /* Number of vertices to draw (w/o normals) */
+        glBindVertexArray(0);
+}
+
+
+void Shape::renderTransform(GLuint shader, glm::mat4 trans)
+{
+        glBindVertexArray(m_vaoID);
+        glUniformMatrix4fv(glGetUniformLocation(shader, "m"), 1, GL_FALSE, glm::value_ptr(trans));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_numVerts); /* Number of vertices to draw (w/o normals) */
         glBindVertexArray(0);
 }
 
@@ -149,6 +173,21 @@ void Shape::addVertex(int *i, glm::vec3 v, glm::vec3 norm)
     m_vertexData[(*i)++] = norm.x;
     m_vertexData[(*i)++] = norm.y;
     m_vertexData[(*i)++] = norm.z;
+    m_vertexData[(*i)++] = 0;
+    m_vertexData[(*i)++] = 0;
+}
+
+
+void Shape::addVertexT(int *i, glm::vec3 v, glm::vec3 norm, glm::vec2 tex)
+{
+    m_vertexData[(*i)++] = v.x;
+    m_vertexData[(*i)++] = v.y;
+    m_vertexData[(*i)++] = v.z;
+    m_vertexData[(*i)++] = norm.x;
+    m_vertexData[(*i)++] = norm.y;
+    m_vertexData[(*i)++] = norm.z;
+    m_vertexData[(*i)++] = tex.x;
+    m_vertexData[(*i)++] = tex.y;
 }
 
 

@@ -23,8 +23,8 @@ void Torus::calcVerts()
 {
     // 3 verts per triangle * slices *
     // squares per slice * 2 * 2 for normals
-    m_numVerts = (((m_p2 + 2) * 2 * m_p1) - 2) * 2;
-    int size = m_numVerts * 3;
+    m_numVerts = (((m_p2 + 2) * 2 * m_p1) - 2);
+    int size = m_numVerts * 8;
     m_vertexData = new GLfloat[size];
 
     // calc the radius to the center point and the

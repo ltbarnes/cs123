@@ -18,12 +18,20 @@ ShapesScene::ShapesScene()
 {
     // Use a shiny orange material
     memset(&m_material, 0, sizeof(m_material));
-    m_material.cAmbient.r = 0.2f;
-    m_material.cAmbient.g = 0.1f;
-    m_material.cDiffuse.r = 1;
+    m_material.cAmbient.r = 0.15f;
+    m_material.cAmbient.g = 0.15f;
+    m_material.cAmbient.b = 0.15f;
+    m_material.cDiffuse.r = 0.5f;
     m_material.cDiffuse.g = 0.5f;
+    m_material.cDiffuse.b = 0.5f;
     m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
     m_material.shininess = 64;
+
+    m_material.textureMap = new CS123SceneFileMap();
+    m_material.textureMap->filename = "/course/cs123/data/image/BoneHead.jpg";
+    m_material.textureMap->isUsed = 1;
+    m_material.textureMap->repeatU = 1;
+    m_material.textureMap->repeatV = 1;
 
     // Use a white directional light from the upper left corner
     memset(&m_light, 0, sizeof(m_light));
@@ -46,6 +54,7 @@ ShapesScene::ShapesScene()
 
 ShapesScene::~ShapesScene()
 {
+    delete m_material.textureMap;
     if (m_shape)
         delete m_shape;
 }
@@ -58,6 +67,13 @@ void ShapesScene::init()
     this->setShape();
     this->updateShape();
 
+    int texId = loadTexture(QString::fromStdString(m_material.textureMap->filename));
+    if (texId == -1) {
+        cout << "Texture does not exist" << endl;
+        m_material.textureMap->isUsed = 0;
+    } else
+        m_material.textureMap->texid = texId;
+
     m_initialized = true;
 }
 
@@ -68,6 +84,7 @@ void ShapesScene::setShape()
         delete m_shape;
         m_shape = NULL;
     }
+
 
     switch (settings.shapeType) {
     case SHAPE_CUBE:
@@ -94,7 +111,7 @@ void ShapesScene::setShape()
     case SHAPE_SPECIAL_3:
         m_shape = new RippleSphere(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
         break;
-    default: // basic triangle shape
+    default: // basic square shape
         m_shape = new Shape();
         break;
     }

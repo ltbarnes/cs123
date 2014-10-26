@@ -20,8 +20,8 @@ Cone::~Cone()
 
 void Cone::calcVerts()
 {
-    m_numVerts = ((m_p2 * ((m_p1 + 1) * 4)) - 2) * 2;
-    int size = m_numVerts * 3;
+    m_numVerts = ((m_p2 * ((m_p1 + 1) * 4)) - 2);
+    int size = m_numVerts * 8;
     m_vertexData = new GLfloat[size];
 
     // calc slope of normals
@@ -70,7 +70,6 @@ void Cone::calcVerts()
         prev[0] = curr[0];
         prev[1] = curr[1];
     }
-
 }
 
 
