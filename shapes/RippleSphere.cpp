@@ -73,8 +73,11 @@ void RippleSphere::make3Dslice(int *index, float thetaL, float thetaR, glm::vec3
                             m_radius * cos(phi) * a,
                             m_radius * sin(phi) * sin(thetaR) * a);
 
-        addVertex(index, vl, calcNorm(phi, thetaL));
-        addVertex(index, vr, calcNorm(phi, thetaR));
+        glm::vec2 texl = glm::vec2(1.f - thetaL / (2 * M_PI), phi / M_PI);
+        glm::vec2 texr = glm::vec2(1.f - thetaR / (2 * M_PI), phi / M_PI);
+
+        addVertexT(index, vl, calcNorm(phi, thetaL), texl);
+        addVertexT(index, vr, calcNorm(phi, thetaR), texr);
     }
     // add bottom center point
     addVertex(index, bottom, glm::vec3(0, -1, 0));

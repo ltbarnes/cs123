@@ -28,7 +28,7 @@ void Ripple::calcVerts()
     v1 = glm::vec3(-m_radius, -m_radius, f(-m_radius, -m_radius));
 
     int index = 0;
-    addVertex(&index, v1, calcNormal(v1));
+    addVertexT(&index, v1, calcNormal(v1), glm::vec2(v1.x + 0.5f, 0.5f - v1.y));
 
     for (int i = 0; i < m_p1; i++) {
 
@@ -45,10 +45,10 @@ void Ripple::calcVerts()
                 v2.z = f(v2.x, v2.y);
 
                 if (skip)
-                    addVertex(&index, v1, calcNormal(v1));
+                    addVertexT(&index, v1, calcNormal(v1), glm::vec2(v1.x + 0.5f, 0.5f - v1.y));
                 else
                     skip = true;
-                addVertex(&index, v2, calcNormal(v2));
+                addVertexT(&index, v2, calcNormal(v2), glm::vec2(v2.x + 0.5f, 0.5f - v2.y));
             }
 
         } else {
@@ -60,10 +60,10 @@ void Ripple::calcVerts()
                 v2.z = f(v2.x, v2.y);
 
                 if (skip)
-                    addVertex(&index, v1, calcNormal(v1));
+                    addVertexT(&index, v1, calcNormal(v1), glm::vec2(v1.x + 0.5f, 0.5f - v1.y));
                 else
                     skip = true;
-                addVertex(&index, v2, calcNormal(v2));
+                addVertexT(&index, v2, calcNormal(v2), glm::vec2(v2.x + 0.5f, 0.5f - v2.y));
             }
         }
     }

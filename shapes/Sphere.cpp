@@ -75,13 +75,10 @@ void Sphere::calcSliceSeg(int *index, float thetaL, float thetaR, float phi)
                         m_radius * cos(phi),
                         m_radius * sin(phi) * sin(thetaR));
 
-    glm::vec3 nl = glm::normalize(vl);
-    glm::vec3 nr = glm::normalize(vr);
-
     glm::vec2 texl = glm::vec2(1.f - thetaL / (2 * M_PI), phi / M_PI);
     glm::vec2 texr = glm::vec2(1.f - thetaR / (2 * M_PI), phi / M_PI);
 
-    addVertexT(index, vl, nl, texl*1.f);
-    addVertexT(index, vr, nr, texr*1.f);
+    addVertexT(index, vl, glm::normalize(vl), texl);
+    addVertexT(index, vr, glm::normalize(vr), texr);
 }
 

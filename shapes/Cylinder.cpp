@@ -23,7 +23,7 @@ void Cylinder::calcVerts()
 {
     // 3 verts per triangle * slices * (horizSquares * 2 +
     // (top and bottom squares * 2 - 1) * 2) * 2 for normals
-    m_numVerts = ((m_p2 / 1 * ((m_p1 * 2 * 3) + 6)) - 2);
+    m_numVerts = ((m_p2 * ((m_p1 * 2 * 3) + 6)) - 2);
     int size = m_numVerts * 8;
     m_vertexData = new GLfloat[size];
 
@@ -49,7 +49,7 @@ void Cylinder::calcVerts()
     int index = 0;
 
     // iterate through the slices
-    for (int i = 0; i < m_p2 / 1; i++) {
+    for (int i = 0; i < m_p2; i++) {
         curr[0] = x;
         curr[1] = z;
 
