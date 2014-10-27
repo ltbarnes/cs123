@@ -38,8 +38,8 @@ void Cylinder::calcVerts()
 
     glm::vec2 prev = glm::vec2(x, z);
     glm::vec2 curr = glm::vec2(0, 0);
-    float prevAngle = 0;
-    float currAngle;
+    float prevU = 1.f;
+    float currU;
 
     // rotation matrix
     temp = x;
@@ -53,9 +53,9 @@ void Cylinder::calcVerts()
         curr[0] = x;
         curr[1] = z;
 
-        currAngle = (i + 1.f) / m_p2 * 2.f * M_PI;
+        currU = 1.f - ((i + 1.f) / m_p2);
 
-        make3DSlice(&index, curr, prev, currAngle, prevAngle);
+        make3DSlice(&index, curr, prev, currU, prevU);
 
         // repeat the last point of this slice and the first point of the next
         // slice so the renderer won't connect the two points
@@ -71,13 +71,14 @@ void Cylinder::calcVerts()
 
         prev[0] = curr[0];
         prev[1] = curr[1];
-        prevAngle = currAngle;
+
+        prevU = currU;
     }
 }
 
 
 
-void Cylinder::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float angleL, float angleR)
+void Cylinder::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float leftU, float rightU)
 {
     // starting point
     glm::vec2 tex = glm::vec2(0.5f, 0.5f);
@@ -93,15 +94,16 @@ void Cylinder::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float an
     glm::vec3 nl = glm::normalize(vl);
     glm::vec3 nr = glm::normalize(vr);
 
-    glm::vec2 texl, texr;
+    glm::vec2 texl = glm::vec2(leftU, 0);
+    glm::vec2 texr = glm::vec2(rightU, 0);
 
     for (int i = m_p1; i >= 0; i--) {
         float y = (i * m_halfHeight * 2.f / m_p1) - m_halfHeight;
         vl.y = y;
         vr.y = y;
 
-        texl = glm::vec2(1.f - (angleL / (2 * M_PI)),1.f - (i * 1.f / m_p1));
-        texr = glm::vec2(1.f - (angleR / (2 * M_PI)),1.f - (i * 1.f / m_p1));
+        texl.y = 1.f - (i * 1.f / m_p1);
+        texr.y = 1.f - (i * 1.f / m_p1);
 
         addVertexT(index, vl, nl, texl);
         addVertexT(index, vr, nr, texr);

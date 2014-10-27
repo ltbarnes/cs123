@@ -35,20 +35,26 @@ void Torus::calcVerts()
     float prev = 0;
     float curr;
 
+    float prevU = 1.f;
+    float currU;
+
     int index = 0;
 
     // iterate through the slices
     for (int i = 1; i <= m_p1; i++) {
         curr = i * M_PI * 2.f / m_p1;
 
-        make3Dslice(&index, prev, curr, i == 1, i == m_p1);
+        currU = 1.f - ((i + 1.f) / m_p1);
+
+        make3Dslice(&index, prev, curr, i == 1, i == m_p1, prevU, currU);
 
         prev = curr;
+        prevU = currU;
     }
 }
 
 
-void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool last)
+void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool last, float leftU, float rightU)
 {
     float theta;
 
@@ -64,6 +70,10 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
     glm::vec3 nl = glm::normalize(vl - centerL);
 
     glm::vec3 vr, nr;
+
+    // texture coords
+    glm::vec2 texl = glm::vec2(leftU, 0);
+    glm::vec2 texr = glm::vec2(rightU, 0);
 
     // double the first point if it's not the first point on the shape
     if (!first)
@@ -83,8 +93,11 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
         nl = glm::normalize(vl - centerL);
         nr = glm::normalize(vr - centerR);
 
-        addVertex(index, vl, nl);
-        addVertex(index, vr, nr);
+        texl.y = (i * 1.f / m_p2);
+        texr.y = (i * 1.f / m_p2);
+
+        addVertexT(index, vl, nl, texl);
+        addVertexT(index, vr, nr, texr);
     }
     // double the last point if it's not the last point on the shape
     if (!last)

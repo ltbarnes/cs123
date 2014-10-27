@@ -39,8 +39,6 @@ Scene::~Scene()
 
 void Scene::parse(Scene *sceneToFill, CS123ISceneParser *parser)
 {
-    // TODO: load scene into sceneToFill using setGlobal(), addLight(), addPrimitive(), and
-    //   finishParsing()
     CS123SceneGlobalData data;
     parser->getGlobalData(data);
     sceneToFill->setGlobal(data);
@@ -87,8 +85,12 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
         case TRANSFORMATION_ROTATE:
             v = t->rotate;
             a = t->angle;
-            theta = atan(v.z / v.x);
-            phi = -atan(v.y / glm::distance(glm::vec2(), glm::vec2(v.x, v.z)));
+
+            theta = atan2(v.z, v.x);
+            theta = (theta > 0 ? theta : 2.f * M_PI + theta);
+
+            phi = atan2(v.y, glm::distance(glm::vec2(), glm::vec2(v.x, v.z)));
+            phi = -(phi > 0 ? phi : 2.f * M_PI + phi);
 
             trans *= glm::mat4(cos(theta), 0, sin(theta), 0,
                                0, 1, 0, 0,
@@ -222,7 +224,6 @@ void Scene::setColor(CS123SceneColor *dest, CS123SceneColor *src, float constant
 int Scene::loadTexture(const QString &filename)
 {
     // Make sure the image file exists
-    cout << filename.toStdString() << endl;
     QFile file(filename);
     if (!file.exists())
         return -1;

@@ -8,7 +8,7 @@
 SceneviewScene::SceneviewScene()
 {
     // TODO: [SCENEVIEW] Set up anything you need for your Sceneview scene here...
-    int param = 25;
+    int param = 40;
     m_cone = new Cone(param, param, 0.5f, 0.5f);
     m_cube = new Cube(param, 0.5f);
     m_cylinder = new Cylinder(param, param, 0.5f, 0.5f);
@@ -29,6 +29,30 @@ SceneviewScene::~SceneviewScene()
 }
 
 
+void SceneviewScene::setShapeParams(int p1, int p2, float p3)
+{
+    m_cone->setParam1(p1);
+    m_cone->setParam2(p2);
+    m_cone->setParam3(p3);
+
+    m_cube->setParam1(p1);
+    m_cube->setParam2(p2);
+    m_cube->setParam3(p3);
+
+    m_cylinder->setParam1(p1);
+    m_cylinder->setParam2(p2);
+    m_cylinder->setParam3(p3);
+
+    m_sphere->setParam1(p1);
+    m_sphere->setParam2(p2);
+    m_sphere->setParam3(p3);
+
+    m_torus->setParam1(p1);
+    m_torus->setParam2(p2);
+    m_torus->setParam3(p3);
+}
+
+
 void SceneviewScene::updateShape(Shape *shape)
 {
     shape->calcVerts();
@@ -42,6 +66,23 @@ void SceneviewScene::init()
 {
     OpenGLScene::init();
 
+    int num_shapes = m_shapes.size();
+
+    if (num_shapes <= 1)
+        setShapeParams(100, 100, 20);
+    else if (num_shapes <= 50)
+        setShapeParams(70, 70, 20);
+    else if (num_shapes <= 100)
+        setShapeParams(50, 50, 20);
+    else if (num_shapes <= 200)
+        setShapeParams(25, 25, 20);
+    else if (num_shapes <= 1000)
+        setShapeParams(15, 15, 20);
+    else if (num_shapes <= 10000)
+        setShapeParams(7, 7, 20);
+    else
+        setShapeParams(3, 3, 20);
+
     updateShape(m_cone);
     updateShape(m_cube);
     updateShape(m_cylinder);
@@ -50,7 +91,6 @@ void SceneviewScene::init()
 
     QString filename;
     int texId;
-    int num_shapes = m_shapes.size();
 
     for (int i = 0; i < num_shapes; i++)
     {
@@ -118,23 +158,18 @@ void SceneviewScene::renderGeometry()
 
         switch (sp->type) {
         case PRIMITIVE_CUBE:
-//            cout << "Cube: ";
             m_cube->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_CONE:
-//            cout << "Cone: ";
             m_cone->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_CYLINDER:
-//            cout << "Cylinder: ";
             m_cylinder->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_SPHERE:
-//            cout << "Sphere: ";
             m_sphere->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_TORUS:
-//            cout << "Torus: ";
             m_torus->renderTransform(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_MESH:

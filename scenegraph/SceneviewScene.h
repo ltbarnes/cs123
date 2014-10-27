@@ -49,6 +49,7 @@ public:
     void setSelection(int x, int y);
 
 private:
+    void setShapeParams(int p1, int p2, float p3);
     void updateShape(Shape *shape);
 
     Shape *m_cone;

@@ -28,7 +28,7 @@ ShapesScene::ShapesScene()
     m_material.shininess = 64;
 
     m_material.textureMap = new CS123SceneFileMap();
-    m_material.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.jpg";
+    m_material.textureMap->filename = "/course/cs123/data/image/BoneHead.jpg";
     m_material.textureMap->isUsed = 1;
     m_material.textureMap->repeatU = 1;
     m_material.textureMap->repeatV = 1;
@@ -69,7 +69,7 @@ void ShapesScene::init()
 
     int texId = loadTexture(QString::fromStdString(m_material.textureMap->filename));
     if (texId == -1) {
-        cout << "Texture does not exist" << endl;
+        cout << "Texture '" << m_material.textureMap->filename << "' does not exist" << endl;
         m_material.textureMap->isUsed = 0;
     } else
         m_material.textureMap->texid = texId;

@@ -39,6 +39,9 @@ void Cone::calcVerts()
     glm::vec2 prev = glm::vec2(x, z);
     glm::vec2 curr = glm::vec2(0, 0);
 
+    float prevU = 1;
+    float currU;
+
     // rotation matrix
     temp = x;
     x = cosine * x - sine * z;
@@ -51,7 +54,9 @@ void Cone::calcVerts()
         curr[0] = x;
         curr[1] = z;
 
-        make3DSlice(&index, curr, prev, normSlope);
+        currU = 1.f - ((i + 1.f) / m_p2);
+
+        make3DSlice(&index, curr, prev, normSlope, currU, prevU);
 
         // repeat the last point of this slice and the first point of the next
         // slice so the renderer won't connect the two points
@@ -69,12 +74,14 @@ void Cone::calcVerts()
 
         prev[0] = curr[0];
         prev[1] = curr[1];
+
+        prevU = currU;
     }
 }
 
 
 
-void Cone::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float normSlope)
+void Cone::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float normSlope, float leftU, float rightU)
 {
     // get the slice angles and normals
     glm::vec3 spineL = glm::vec3(left.x, m_halfHeight * -2.f, left.y) * (1.f / m_p1);
@@ -83,22 +90,28 @@ void Cone::make3DSlice(int *index, glm::vec2 left, glm::vec2 right, float normSl
     glm::vec3 nl = glm::normalize(glm::vec3(left.x, m_radius * normSlope, left.y));
     glm::vec3 nr = glm::normalize(glm::vec3(right.x, m_radius * normSlope, right.y));
 
+    glm::vec2 texl = glm::vec2(leftU, 0);
+    glm::vec2 texr = glm::vec2(rightU, 0);
+
     // point of cone (starting point)
     glm::vec3 point = glm::vec3(0, m_halfHeight, 0);
-    addVertex(index, point, glm::normalize(nl + nr));
+    addVertexT(index, point, glm::normalize(nl + nr), texr);
 
     // build the wall
     for (int i = 1; i <= m_p1; i++) {
 
-        addVertex(index, point + spineL * (1.f * i), nl);
-        addVertex(index, point + spineR * (1.f * i), nr);
+        texl.y = i * 1.f / m_p1;
+        texr.y = i * 1.f / m_p1;
+
+        addVertexT(index, point + spineL * (1.f * i), nl, texl);
+        addVertexT(index, point + spineR * (1.f * i), nr, texr);
     }
 
     // make the bottom circle slice
     makeBottomSlice(index, glm::vec3(left.x, -m_halfHeight, left.y), glm::vec3(right.x, -m_halfHeight, right.y));
 
     // ending point
-    addVertex(index, glm::vec3(0, -m_halfHeight, 0), glm::vec3(0, -1, 0));
+    addVertexT(index, glm::vec3(0, -m_halfHeight, 0), glm::vec3(0, -1, 0), glm::vec2(0.5f, 0.5f));
 
 
 }
