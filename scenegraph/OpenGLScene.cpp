@@ -36,6 +36,8 @@ void OpenGLScene::init()
     m_uniformLocs["tex"] = glGetUniformLocation(m_shader, "tex");
     m_uniformLocs["useArrowOffsets"] = glGetUniformLocation(m_shader, "useArrowOffsets");
     m_uniformLocs["blend"] = glGetUniformLocation(m_shader, "blend");
+    m_uniformLocs["repeatU"] = glGetUniformLocation(m_shader, "repeatU");
+    m_uniformLocs["repeatV"] = glGetUniformLocation(m_shader, "repeatV");
 }
 
 void OpenGLScene::render(SupportCanvas3D *context)
@@ -107,6 +109,8 @@ void OpenGLScene::applyMaterial(const CS123SceneMaterial &material)
         glUniform1i(m_uniformLocs["useTexture"], 1);
         glUniform1i(m_uniformLocs["tex"], 1);
         glUniform1f(m_uniformLocs["blend"], material.blend);
+        glUniform1f(m_uniformLocs["repeatU"], material.textureMap->repeatU);
+        glUniform1f(m_uniformLocs["repeatV"], material.textureMap->repeatV);
 
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, material.textureMap->texid);

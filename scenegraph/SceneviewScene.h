@@ -49,13 +49,15 @@ public:
     void setSelection(int x, int y);
 
 private:
+    void updateShape(Shape *shape);
+
     Shape *m_cone;
     Shape *m_cube;
     Shape *m_cylinder;
     Shape *m_sphere;
     Shape *m_torus;
 
-    void updateShape(Shape *shape);
+    QHash<QString, GLuint> m_textures;
 
     // This will help you during the "modeler" lab, so don't worry about it for now.
     SelectionRecorder m_selectionRecorder;

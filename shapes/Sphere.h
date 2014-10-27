@@ -12,8 +12,8 @@ public:
     virtual void calcVerts();
 
 protected:
-    virtual void make3Dslice(int *index, float thetaL, float thetaR);
-    virtual void calcSliceSeg(int *index, float thetaL, float thetaR, float phi);
+    virtual void make3Dslice(int *index, float thetaR, float thetaL);
+    virtual void calcSliceSeg(int *index, float thetaR, float thetaL, float phi);
 
     float m_radius;
 };

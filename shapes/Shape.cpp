@@ -205,3 +205,18 @@ bool Shape::animate()
 }
 
 
+glm::vec2 Shape::mapPoints(const glm::vec2 val, const glm::vec2 oldMin, const glm::vec2 oldMax,
+                       const glm::vec2 newMin, const glm::vec2 newMax)
+{
+    float x =  (val.x - oldMin.x) / (oldMax.x - oldMin.x) * (newMax.x - newMin.x) + oldMin.x;
+    float y =  (val.y - oldMin.y) / (oldMax.y - oldMin.y) * (newMax.y - newMin.y) + oldMin.y;
+    return glm::vec2(x, y);
+}
+
+
+float Shape::map(const float val, const float oldMin, const float oldMax, const float newMin, const float newMax)
+{
+    return (val - oldMin) / (oldMax - oldMin) * (newMax - newMin) + oldMin;
+}
+
+

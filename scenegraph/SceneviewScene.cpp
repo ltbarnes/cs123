@@ -8,7 +8,7 @@
 SceneviewScene::SceneviewScene()
 {
     // TODO: [SCENEVIEW] Set up anything you need for your Sceneview scene here...
-    int param = 50;
+    int param = 25;
     m_cone = new Cone(param, param, 0.5f, 0.5f);
     m_cube = new Cube(param, 0.5f);
     m_cylinder = new Cylinder(param, param, 0.5f, 0.5f);
@@ -49,17 +49,29 @@ void SceneviewScene::init()
     updateShape(m_torus);
 
     QString filename;
-    QList<QString> keys = m_textures.keys();
-    int num_keys = keys.size();
+    int texId;
+    int num_shapes = m_shapes.size();
 
-    for (int i = 0; i < num_keys; i++)
+    for (int i = 0; i < num_shapes; i++)
     {
-        filename = keys.at(i);
-        int texId = loadTexture(filename);
-        if (texId == -1)
-            cout << "Texture '" << filename.toStdString() << "' does not exist" << endl;
-        else
-            m_textures.insert(filename, texId);
+
+        CS123SceneMaterial& mat = m_shapes.at(i)->material;
+        filename = QString::fromStdString(mat.textureMap->filename);
+
+        if (mat.textureMap->isUsed) {
+            if (m_textures.contains(filename)) {
+                mat.textureMap->texid = m_textures.value(filename);
+            } else {
+                texId = loadTexture(filename);
+                if (texId == -1) {
+                    cout << "Texture '" << mat.textureMap->filename << "' does not exist" << endl;
+                    mat.textureMap->isUsed = 0;
+                } else {
+                    m_textures.insert(filename, texId);
+                    mat.textureMap->texid = texId;
+                }
+            }
+        }
     }
 
     m_initialized = true;
@@ -131,14 +143,6 @@ void SceneviewScene::renderGeometry()
         default:
             break;
         }
-
-//        cout << sp->material.textureMap->filename << endl;
-//        cout << sp->material.textureMap->repeatU << ", ";
-//        cout << sp->material.textureMap->repeatV << endl;
-
-//        cout << sp.material.cDiffuse.r << ", ";
-//        cout << sp.material.cDiffuse.g << ", ";
-//        cout << sp.material.cDiffuse.b << endl;
     }
 }
 

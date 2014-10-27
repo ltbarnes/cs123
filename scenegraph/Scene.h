@@ -39,7 +39,6 @@ protected:
     QList<CS123SceneLightData*>  m_lights;
     QList<CS123ScenePrimitive*> m_shapes;
     QList<glm::mat4> m_trans;
-    QHash<QString, int> m_textures;
 
     bool m_initialized;
 

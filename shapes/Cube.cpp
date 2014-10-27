@@ -44,32 +44,48 @@ void Cube::makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool
     int oi;  // other index
     int n;   // norm
 
+    glm::vec2 omin = glm::vec2(0, 0);
+    glm::vec2 omax = glm::vec2(m_p1, m_p1);
+    glm::vec2 nmin, nmax;
+
     if (norm.x) {
         tbi = 2;
         rli = 1;
         oi = 0;
         n = norm.x;
+        nmin = glm::vec2(1.f, 1.f);
+        nmax = glm::vec2(0.f, 0.f);
     }
     else if (norm.y) {
         tbi = 0;
         rli = 2;
         oi = 1;
         n = norm.y;
+        if (n > 0) {
+            nmin = glm::vec2(0.f, 0.f);
+            nmax = glm::vec2(1.f, 1.f);
+        } else {
+            nmin = glm::vec2(1.f, 1.f);
+            nmax = glm::vec2(0.f, 0.f);
+        }
     }
     else { // (norm.z)
-        tbi = 1;
-        rli = 0;
+        tbi = 0;
+        rli = 1;
         oi = 2;
-        n = norm.z;
+        n = -norm.z;
+        nmin = glm::vec2(1.f, 1.f);
+        nmax = glm::vec2(0.f, 0.f);
     }
 
 
     glm::vec3 v1, v2;
+    glm::vec2 t1, t2; // texture coords
 
     // set corner point
     v1[rli] = -m_halfWidth;
     v1[tbi] = -m_halfWidth;
-    v1[oi] = n * m_halfWidth;
+    v1[oi] = norm[oi] * m_halfWidth;
 
     for (int i = 0; i < m_p1; i++) {
 
@@ -85,8 +101,11 @@ void Cube::makeSide(int *index, glm::vec3 norm, double spacing, bool first, bool
             v2 = v1;
             v2[rli] = v1[rli] + spacing;
 
-            addVertex(index, v1, norm);
-            addVertex(index, v2, norm);
+            t1 = mapPoints(glm::vec2(j, i), omin, omax, nmin, nmax);
+            t2 = mapPoints(glm::vec2(j, i+1), omin, omax, nmin, nmax);
+
+            addVertexT(index, v1, norm, t1);
+            addVertexT(index, v2, norm, t2);
         }
         // double the last point if it isn't the end of the cube
         if (i != m_p1 - 1 || !last)

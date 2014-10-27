@@ -120,7 +120,7 @@ void Cone::makeBottomSlice(int *index, glm::vec3 left, glm::vec3 right)
         vr.x = right.x * scale;
         vr.z = right.z * scale;
 
-        addVertex(index, vl, n);
-        addVertex(index, vr, n);
+        addVertexT(index, vl, n, glm::vec2(vl.x + 0.5f, 0.5f - vl.z));
+        addVertexT(index, vr, n, glm::vec2(vr.x + 0.5f, 0.5f - vr.z));
     }
 }

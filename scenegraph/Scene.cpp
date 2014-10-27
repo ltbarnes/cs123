@@ -9,7 +9,6 @@
 
 Scene::Scene() //: m_camera(NULL)
 {
-
 }
 
 Scene::~Scene()
@@ -111,8 +110,6 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
                               0, 1, 0, 0,
                               sin(theta), 0, cos(theta), 0,
                               0, 0, 0, 1);
-//            cout << "TRANS" << endl;
-//            cout << glm::to_string(t->matrix).c_str() << endl;
             break;
         case TRANSFORMATION_MATRIX:
             cout << "Matrix" << endl;
@@ -168,12 +165,6 @@ void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::m
     mat.blend = material.blend;
     mat.ior = material.ior;
     mat.shininess = material.shininess;
-
-    // create textures
-    QString filename = QString::fromStdString(mat.textureMap->filename);
-    if (filename.length() > 0 && !m_textures.contains(filename))
-        m_textures.insert(filename, -1);
-
 
     // add primitive and transformation to lists
     m_shapes.append(sp);
@@ -259,8 +250,8 @@ int Scene::loadTexture(const QString &filename)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Set coordinate wrapping options
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     return id;
 }

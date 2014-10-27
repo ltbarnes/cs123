@@ -52,7 +52,8 @@ void Sphere::make3Dslice(int *index, float thetaL, float thetaR)
     float phi;
 
     // top point
-    addVertex(index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0));
+    glm::vec2 tex = glm::vec2(1.f - (thetaR / (2 * M_PI)), 0.f);
+    addVertexT(index, glm::vec3(0, m_radius, 0), glm::vec3(0, 1, 0), tex);
 
     // iterate through sub blocks of slice
     for (int i = 1; i < m_p1; i++) {
@@ -60,7 +61,8 @@ void Sphere::make3Dslice(int *index, float thetaL, float thetaR)
         calcSliceSeg(index, thetaL, thetaR, phi);
     }
     // bottom point
-    addVertex(index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0));
+    tex.y = 1.f;
+    addVertexT(index, glm::vec3(0, -m_radius, 0), glm::vec3(0, -1, 0), tex);
 }
 
 void Sphere::calcSliceSeg(int *index, float thetaL, float thetaR, float phi)
@@ -73,7 +75,13 @@ void Sphere::calcSliceSeg(int *index, float thetaL, float thetaR, float phi)
                         m_radius * cos(phi),
                         m_radius * sin(phi) * sin(thetaR));
 
-    addVertex(index, vl, glm::normalize(vl));
-    addVertex(index, vr, glm::normalize(vr));
+    glm::vec3 nl = glm::normalize(vl);
+    glm::vec3 nr = glm::normalize(vr);
+
+    glm::vec2 texl = glm::vec2(1.f - thetaL / (2 * M_PI), phi / M_PI);
+    glm::vec2 texr = glm::vec2(1.f - thetaR / (2 * M_PI), phi / M_PI);
+
+    addVertexT(index, vl, nl, texl*1.f);
+    addVertexT(index, vr, nr, texr*1.f);
 }
 
