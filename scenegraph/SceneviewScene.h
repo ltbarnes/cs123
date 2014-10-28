@@ -58,8 +58,6 @@ private:
     Shape *m_sphere;
     Shape *m_torus;
 
-    QHash<QString, GLuint> m_textures;
-
     // This will help you during the "modeler" lab, so don't worry about it for now.
     SelectionRecorder m_selectionRecorder;
     int m_selectionIndex;

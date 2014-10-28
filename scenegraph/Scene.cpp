@@ -39,10 +39,12 @@ Scene::~Scene()
 
 void Scene::parse(Scene *sceneToFill, CS123ISceneParser *parser)
 {
+    // handle globals
     CS123SceneGlobalData data;
     parser->getGlobalData(data);
     sceneToFill->setGlobal(data);
 
+    // handle light
     int light_num = parser->getNumLights();
     for (int i = 0; i < light_num; i++)
     {
@@ -51,70 +53,80 @@ void Scene::parse(Scene *sceneToFill, CS123ISceneParser *parser)
         sceneToFill->addLight(lightData);
     }
 
+    // traverse tree to get primitives and transformations
     sceneToFill->nodecursion(sceneToFill, parser->getRootNode(), glm::mat4());
 }
 
 void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
 {
+    // get transformation vector
     std::vector<CS123SceneTransformation*> transforms = node->transformations;
     int num_transforms = transforms.size();
     int i;
 
+    // iterate through transformations and multiply with trans
     for (i = 0; i < num_transforms; i++) {
 
         CS123SceneTransformation *t = transforms[i];
 
-        glm::vec3 v;
-        float a, theta, phi;
+        glm::vec3 v; // transformation coords
+        float a, theta, phi; // rotation angles
 
         switch(t->type) {
         case TRANSFORMATION_TRANSLATE:
             v = t->translate;
-            trans *= glm::mat4(1, 0, 0, 0,
-                               0, 1, 0, 0,
-                               0, 0, 1, 0,
-                               v.x, v.y, v.z, 1);
+            trans *= glm::mat4( 1,   0,   0,   0,
+                                0,   1,   0,   0,
+                                0,   0,   1,   0,
+                               v.x, v.y, v.z,  1);
             break;
         case TRANSFORMATION_SCALE:
             v = t->scale;
-            trans *= glm::mat4(v.x, 0, 0, 0,
-                               0, v.y, 0, 0,
-                               0, 0, v.z, 0,
-                               0, 0, 0, 1);
+            trans *= glm::mat4(v.x,  0,   0,   0,
+                                0,  v.y,  0,   0,
+                                0,   0,  v.z,  0,
+                                0,   0,   0,   1);
             break;
         case TRANSFORMATION_ROTATE:
             v = t->rotate;
             a = t->angle;
 
+            // angle between v and xy plane
             theta = atan2(v.z, v.x);
             theta = (theta > 0 ? theta : 2.f * M_PI + theta);
 
+            // angle between v and xz plane
             phi = atan2(v.y, glm::distance(glm::vec2(), glm::vec2(v.x, v.z)));
             phi = -(phi > 0 ? phi : 2.f * M_PI + phi);
 
-            trans *= glm::mat4(cos(theta), 0, sin(theta), 0,
-                               0, 1, 0, 0,
-                              -sin(theta), 0, cos(theta), 0,
-                               0, 0, 0, 1);
-            trans *= glm::mat4(cos(phi), -sin(phi), 0, 0,
-                               sin(phi), cos(phi), 0, 0,
-                               0, 0, 1, 0,
-                               0, 0, 0, 1);
-            trans *= glm::mat4(1, 0, 0, 0,
-                               0, cos(a), sin(a), 0,
-                               0, -sin(a), cos(a), 0,
-                               0, 0, 0, 1);
-            trans *= glm::mat4(cos(phi), sin(phi), 0, 0,
-                              -sin(phi), cos(phi), 0, 0,
-                               0, 0, 1, 0,
-                               0, 0, 0, 1);
-            trans *= glm::mat4(cos(theta), 0, -sin(theta), 0,
-                              0, 1, 0, 0,
-                              sin(theta), 0, cos(theta), 0,
-                              0, 0, 0, 1);
+            // Rxz-1
+            trans *= glm::mat4(cos(theta),   0,     sin(theta),    0,
+                                   0,        1,         0,         0,
+                              -sin(theta),   0,     cos(theta),    0,
+                                   0,        0,         0,         1);
+            // Rxy-1
+            trans *= glm::mat4(cos(phi), -sin(phi),     0,         0,
+                               sin(phi),  cos(phi),     0,         0,
+                                  0,         0,         1,         0,
+                                  0,         0,         0,         1);
+            // Ryz
+            trans *= glm::mat4(   1,         0,         0,         0,
+                                  0,       cos(a),   sin(a),       0,
+                                  0,      -sin(a),   cos(a),       0,
+                                  0,         0,         0,         1);
+            // Rxy
+            trans *= glm::mat4(cos(phi),  sin(phi),     0,         0,
+                              -sin(phi),  cos(phi),     0,         0,
+                                  0,         0,         1,         0,
+                                  0,         0,         0,         1);
+            // Rxz
+            trans *= glm::mat4(cos(theta),   0,   -sin(theta),     0,
+                                  0,         1,         0,         0,
+                              sin(theta),    0,    cos(theta),     0,
+                                  0,         0,         0,         1);
             break;
         case TRANSFORMATION_MATRIX:
-            cout << "Matrix" << endl;
+            // not sure what this does?
             break;
         default:
             break;
@@ -122,6 +134,7 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
 
     }
 
+    // iterate through primitives
     std::vector<CS123ScenePrimitive*> prims = node->primitives;
     int num_prims = prims.size();
     for (i = 0; i < num_prims; i++) {
@@ -129,6 +142,7 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
         scene->addPrimitive(*prim, trans);
     }
 
+    // recur through all child nodes
     std::vector<CS123SceneNode*> kids = node->children;
     int num_kids = kids.size();
     for (i = 0; i < num_kids; i++) {
@@ -223,34 +237,32 @@ void Scene::setColor(CS123SceneColor *dest, CS123SceneColor *src, float constant
 // Copied from lab04
 int Scene::loadTexture(const QString &filename)
 {
-    // Make sure the image file exists
+    // make sure file exists
     QFile file(filename);
     if (!file.exists())
         return -1;
 
-    // Load the file into memory
+    // load file into memory
     QImage image;
     image.load(file.fileName());
     image = image.mirrored(false, true);
     QImage texture = QGLWidget::convertToGLFormat(image);
 
-    // Generate a new OpenGL texture ID to put our image into
+    // generate texture ID
     GLuint id = 0;
     glGenTextures(1, &id);
 
-    // Make the texture we just created the new active texture
+    // make the texture
     glBindTexture(GL_TEXTURE_2D, id);
 
-    // Copy the image data into the OpenGL texture
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width(), texture.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.bits());
-//    glGenerateMipmap(GL_TEXTURE_2D);
+    // copy image data into texture
     gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width(), texture.height(), GL_RGBA, GL_UNSIGNED_BYTE, texture.bits());
 
-    // Set filtering options
+    // filtering options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Set coordinate wrapping options
+    // coordinate wrapping options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
