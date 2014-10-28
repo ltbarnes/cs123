@@ -28,7 +28,8 @@ ShapesScene::ShapesScene()
     m_material.shininess = 64;
 
     m_material.textureMap = new CS123SceneFileMap();
-    m_material.textureMap->filename = "/course/cs123/data/image/BoneHead.jpg";
+    m_material.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
+//    m_material.textureMap->filename = "/course/cs123/data/image/BoneHead.jpg";
     m_material.textureMap->isUsed = 1;
     m_material.textureMap->repeatU = 1;
     m_material.textureMap->repeatV = 1;
@@ -54,6 +55,13 @@ ShapesScene::ShapesScene()
 
 ShapesScene::~ShapesScene()
 {
+    // delete texture
+    if (m_material.textureMap->isUsed) {
+        GLuint id = m_material.textureMap->texid;
+        glDeleteTextures(1, &id);
+    }
+
+    // delete texture map and shape
     delete m_material.textureMap;
     if (m_shape)
         delete m_shape;

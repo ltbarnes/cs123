@@ -3,12 +3,14 @@
 #include <qgl.h>
 #include <QGLWidget>
 #include <QFile>
+#include <QSet>
 #include "Camera.h"
 
 SceneviewScene::SceneviewScene()
 {
-    // TODO: [SCENEVIEW] Set up anything you need for your Sceneview scene here...
-    int param = 40;
+    int param = 3; // will be changed later based on scene complexity
+
+    // create shapes
     m_cone = new Cone(param, param, 0.5f, 0.5f);
     m_cube = new Cube(param, 0.5f);
     m_cylinder = new Cylinder(param, param, 0.5f, 0.5f);
@@ -20,12 +22,37 @@ SceneviewScene::SceneviewScene()
 
 SceneviewScene::~SceneviewScene()
 {
-    // TODO: [SCENEVIEW] Don't leak memory!
+    // ~Scene() will handle deleting m_shapes and m_lights
+
+    // delete shapes
     delete m_cone;
     delete m_cube;
     delete m_cylinder;
     delete m_sphere;
     delete m_torus;
+
+    // delete textures
+    QSet<GLuint> textureIDs;
+    GLuint id;
+    int num_shapes = m_shapes.size();
+
+    // iterate through materials
+    for (int i = 0; i < num_shapes; i++) {
+        CS123SceneMaterial& mat = m_shapes.at(i)->material;
+
+        // if the texture id was assigned
+        if (mat.textureMap->isUsed) {
+            id = mat.textureMap->texid;
+
+            // if the texture hasn't been deleted yet
+            if (!textureIDs.contains(id)) {
+                glDeleteTextures(1, &id);
+                textureIDs.insert(id);
+            }
+        }
+    }
+    // done with texture ids
+    textureIDs.clear();
 }
 
 
@@ -68,6 +95,7 @@ void SceneviewScene::init()
 
     int num_shapes = m_shapes.size();
 
+    // adjust tessellation based on scene complexity
     if (num_shapes <= 1)
         setShapeParams(100, 100, 20);
     else if (num_shapes <= 50)
@@ -83,47 +111,57 @@ void SceneviewScene::init()
     else
         setShapeParams(3, 3, 20);
 
+    // set shape vertices and make gl calls
     updateShape(m_cone);
     updateShape(m_cube);
     updateShape(m_cylinder);
     updateShape(m_sphere);
     updateShape(m_torus);
 
+    // load and set texture ids
     QString filename;
     int texId;
+    // use hash table so different textures are only loaded once
+    QHash<QString, int> textures;
 
+    // iterate through materials
     for (int i = 0; i < num_shapes; i++)
     {
 
         CS123SceneMaterial& mat = m_shapes.at(i)->material;
-        filename = QString::fromStdString(mat.textureMap->filename);
 
+        // if there is a filename
         if (mat.textureMap->isUsed) {
-            if (m_textures.contains(filename)) {
-                mat.textureMap->texid = m_textures.value(filename);
-            } else {
+            filename = QString::fromStdString(mat.textureMap->filename);
+
+            // if the texture was already loaded
+            if (textures.contains(filename)) {
+                if (textures.value(filename) != -1)
+                    mat.textureMap->texid = textures.value(filename);
+                else
+                    mat.textureMap->isUsed = 0;
+
+            } else { // if the texture hasn't been loaded
                 texId = loadTexture(filename);
                 if (texId == -1) {
                     cout << "Texture '" << mat.textureMap->filename << "' does not exist" << endl;
                     mat.textureMap->isUsed = 0;
                 } else {
-                    m_textures.insert(filename, texId);
                     mat.textureMap->texid = texId;
                 }
+                 // add texture id to the hash table
+                textures.insert(filename, texId);
             }
         }
     }
+    // done with texture hash table
+    textures.clear();
 
     m_initialized = true;
 }
 
 void SceneviewScene::setLights(const glm::mat4 viewMatrix)
 {
-    // TODO: [SCENEVIEW] Fill this in...
-    //
-    // Use function(s) inherited from OpenGLScene to set up the lighting for your scene.
-    // The lighting information will most likely be stored in CS123SceneLightData structures.
-    //
     CS123SceneLightData *light;
 
     int num_lights = m_lights.size();
@@ -131,31 +169,25 @@ void SceneviewScene::setLights(const glm::mat4 viewMatrix)
 
     for (i = 0; i < num_lights; i++) {
         light = m_lights.at(i);
-
-        light->dir = glm::inverse(viewMatrix) * light->dir;
         setLight(*light);
     }
 }
 
 void SceneviewScene::renderGeometry()
 {
-    // TODO: [SCENEVIEW] Fill this in...
-    //
-    // This is where you should render the geometry of the scene. Use what you
-    // know about OpenGL and leverage your Shapes classes to get the job done.
-    //
     if (!m_initialized)
         return;
 
     int num_shapes = m_shapes.size();
     int i;
 
+    // iterate through shapes
     for (i = 0; i < num_shapes; i++) {
         CS123ScenePrimitive *sp = m_shapes.at(i);
 
         applyMaterial(sp->material);
-//        cout << glm::to_string(m_trans.at(i)).c_str() << endl;
 
+        // render shape based on corresponding transformation
         switch (sp->type) {
         case PRIMITIVE_CUBE:
             m_cube->renderTransform(m_shader, m_trans.at(i));
@@ -202,5 +234,4 @@ void SceneviewScene::setSelection(int x, int y)
     // 4) Find out which object you selected, if any (-1 means no selection).
     m_selectionIndex = m_selectionRecorder.exitSelectionMode();
 }
-
 
