@@ -18,18 +18,16 @@ ShapesScene::ShapesScene()
 {
     // Use a shiny orange material
     memset(&m_material, 0, sizeof(m_material));
-    m_material.cAmbient.r = 0.15f;
-    m_material.cAmbient.g = 0.15f;
-    m_material.cAmbient.b = 0.15f;
-    m_material.cDiffuse.r = 0.5f;
+    m_material.cAmbient.r = 0.2f;
+    m_material.cAmbient.g = 0.1f;
+    m_material.cDiffuse.r = 1.0f;
     m_material.cDiffuse.g = 0.5f;
-    m_material.cDiffuse.b = 0.5f;
     m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
     m_material.shininess = 64;
 
+    // Use snow texture
     m_material.textureMap = new CS123SceneFileMap();
-    m_material.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
-//    m_material.textureMap->filename = "/course/cs123/data/image/BoneHead.jpg";
+    m_material.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
     m_material.textureMap->isUsed = 1;
     m_material.textureMap->repeatU = 1;
     m_material.textureMap->repeatV = 1;
@@ -41,7 +39,7 @@ ShapesScene::ShapesScene()
     m_light.color.r = m_light.color.g = m_light.color.b = 1;
     m_light.id = 0;
 
-    //TODO: [SHAPES] Allocate any additional memory you need...
+    // Store old settings and set shape pointer
     m_shape = NULL;
     m_oldSettings = glm::vec4(
                 settings.shapeType,
