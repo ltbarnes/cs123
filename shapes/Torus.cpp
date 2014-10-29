@@ -44,7 +44,7 @@ void Torus::calcVerts()
     for (int i = 1; i <= m_p1; i++) {
         curr = i * M_PI * 2.f / m_p1;
 
-        currU = 1.f - ((i + 1.f) / m_p1);
+        currU = 1.f - ((i * 1.f) / m_p1);
 
         make3Dslice(&index, prev, curr, i == 1, i == m_p1, prevU, currU);
 
@@ -63,9 +63,9 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
     glm::vec3 centerR = glm::vec3(cos(phiR), sin(phiR), 0) * m_R;
 
     // parametric torus equation
-    glm::vec3 vl = glm::vec3((m_R + m_r * cos(0)) * cos(phiL),
-                        (m_R + m_r * cos(0)) * sin(phiL),
-                        m_r * sin(0));
+    glm::vec3 vl = glm::vec3((m_R + m_r * cos(M_PI)) * cos(phiL),
+                        (m_R + m_r * cos(M_PI)) * sin(phiL),
+                        m_r * sin(M_PI));
 
     glm::vec3 nl = glm::normalize(vl - centerL);
 
@@ -80,7 +80,7 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
         addVertex(index, vl, nl);
 
     for (int i = 0; i <= m_p2; i++) {
-        theta = i * M_PI * 2.f / m_p2;
+        theta = i * M_PI * 2.f / m_p2 + M_PI;
 
         // parametric torus equation
         vl = glm::vec3((m_R + m_r * cos(theta)) * cos(phiL),
@@ -93,8 +93,8 @@ void Torus::make3Dslice(int *index, float phiL, float phiR, bool first, bool las
         nl = glm::normalize(vl - centerL);
         nr = glm::normalize(vr - centerR);
 
-        texl.y = (i * 1.f / m_p2);
-        texr.y = (i * 1.f / m_p2);
+        texl.y = 1.f - (i * 1.f / m_p2);
+        texr.y = 1.f - (i * 1.f / m_p2);
 
         addVertexT(index, vl, nl, texl);
         addVertexT(index, vr, nr, texr);

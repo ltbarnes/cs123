@@ -20,7 +20,7 @@ public:
     virtual bool usesParam(int num);
     virtual void calcVerts();
     void render();
-    void renderTransform(GLuint shader, glm::mat4 trans);
+    void transformAndRender(GLuint shader, glm::mat4 trans);
 
     virtual bool animate();
 
