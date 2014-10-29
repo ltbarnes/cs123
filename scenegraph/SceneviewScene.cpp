@@ -109,7 +109,7 @@ void SceneviewScene::init()
     else if (num_shapes <= 10000)
         setShapeParams(7, 7, 20);
     else
-        setShapeParams(3, 3, 20);
+        setShapeParams(4, 4, 20);
 
     // set shape vertices and make gl calls
     updateShape(m_cone);
