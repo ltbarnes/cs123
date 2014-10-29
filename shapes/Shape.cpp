@@ -156,7 +156,7 @@ void Shape::render()
 }
 
 
-void Shape::renderTransform(GLuint shader, glm::mat4 trans)
+void Shape::transformAndRender(GLuint shader, glm::mat4 trans)
 {
         glBindVertexArray(m_vaoID);
         glUniformMatrix4fv(glGetUniformLocation(shader, "m"), 1, GL_FALSE, glm::value_ptr(trans));

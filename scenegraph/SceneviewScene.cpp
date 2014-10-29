@@ -190,22 +190,22 @@ void SceneviewScene::renderGeometry()
         // render shape based on corresponding transformation
         switch (sp->type) {
         case PRIMITIVE_CUBE:
-            m_cube->renderTransform(m_shader, m_trans.at(i));
+            m_cube->transformAndRender(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_CONE:
-            m_cone->renderTransform(m_shader, m_trans.at(i));
+            m_cone->transformAndRender(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_CYLINDER:
-            m_cylinder->renderTransform(m_shader, m_trans.at(i));
+            m_cylinder->transformAndRender(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_SPHERE:
-            m_sphere->renderTransform(m_shader, m_trans.at(i));
+            m_sphere->transformAndRender(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_TORUS:
-            m_torus->renderTransform(m_shader, m_trans.at(i));
+            m_torus->transformAndRender(m_shader, m_trans.at(i));
             break;
         case PRIMITIVE_MESH:
-            m_sphere->renderTransform(m_shader, m_trans.at(i));
+            m_sphere->transformAndRender(m_shader, m_trans.at(i));
             break;
         default:
             break;
