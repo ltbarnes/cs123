@@ -60,7 +60,7 @@ void SceneviewScene::init()
     else if (num_shapes <= 10000)
         initShapes(7, 7, 20.f);
     else
-        initShapes(3, 3, 20.f);
+        initShapes(4, 4, 20.f);
 
     // set shape vertices and make gl calls
     updateShapes();
