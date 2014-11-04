@@ -108,6 +108,8 @@ void OpenGLScene::init()
     m_shader = ResourceLoader::loadShaders(
             ":/shaders/default.vert",
             ":/shaders/default.frag");
+    if (m_normalRenderer)
+        delete m_normalRenderer;
     m_normalRenderer = new NormalRenderer(m_shader);
 
     m_uniformLocs["p"]= glGetUniformLocation(m_shader, "p");
