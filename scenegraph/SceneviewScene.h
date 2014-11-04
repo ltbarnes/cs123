@@ -49,15 +49,6 @@ public:
     void setSelection(int x, int y);
 
 private:
-    void setShapeParams(int p1, int p2, float p3);
-    void updateShape(Shape *shape);
-
-    Shape *m_cone;
-    Shape *m_cube;
-    Shape *m_cylinder;
-    Shape *m_sphere;
-    Shape *m_torus;
-
     // This will help you during the "modeler" lab, so don't worry about it for now.
     SelectionRecorder m_selectionRecorder;
     int m_selectionIndex;

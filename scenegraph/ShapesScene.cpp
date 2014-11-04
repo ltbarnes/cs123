@@ -10,34 +10,51 @@
 #include "shapes/Ripple.h"
 #include "shapes/RippleSphere.h"
 
-#define SHAPE_RADIUS 0.5f
-
 glm::vec4 lightDirection = glm::normalize(glm::vec4(1.f, -1.f, -1.f, 0.f));
 
 ShapesScene::ShapesScene()
 {
+    m_global.ka = 1.f;
+    m_global.kd = 1.f;
+    m_global.ks = 1.f;
+    m_global.kt = 1.f;
+
+    CS123ScenePrimitive *prim = new CS123ScenePrimitive();
+    CS123SceneMaterial& mat = prim->material;
+
+    prim->meshfile = "";
+    prim->type = PRIMITIVE_CUBE;
+
     // Use a shiny orange material
-    memset(&m_material, 0, sizeof(m_material));
-    m_material.cAmbient.r = 0.2f;
-    m_material.cAmbient.g = 0.1f;
-    m_material.cDiffuse.r = 1.0f;
-    m_material.cDiffuse.g = 0.5f;
-    m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
-    m_material.shininess = 64;
+    memset(&mat, 0, sizeof(CS123SceneMaterial));
+    mat.cAmbient.r = 0.2f;
+    mat.cAmbient.g = 0.1f;
+    mat.cDiffuse.r = 1.0f;
+    mat.cDiffuse.g = 0.5f;
+    mat.cSpecular.r = mat.cSpecular.g = mat.cSpecular.b = 1;
+    mat.shininess = 64;
 
     // Use snow texture
-    m_material.textureMap = new CS123SceneFileMap();
-    m_material.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
-    m_material.textureMap->isUsed = 1;
-    m_material.textureMap->repeatU = 1;
-    m_material.textureMap->repeatV = 1;
+    mat.textureMap = new CS123SceneFileMap();
+    mat.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
+    mat.textureMap->isUsed = false;
+    mat.textureMap->repeatU = 1;
+    mat.textureMap->repeatV = 1;
 
+    mat.bumpMap = new CS123SceneFileMap();
+    mat.bumpMap->filename = "";
+    mat.bumpMap->isUsed = false;
+    mat.bumpMap->repeatU = 1;
+    mat.bumpMap->repeatV = 1;
+    mat.bumpMap->texid = 0;
+
+    CS123SceneLightData *light = new CS123SceneLightData();
     // Use a white directional light from the upper left corner
-    memset(&m_light, 0, sizeof(m_light));
-    m_light.type = LIGHT_DIRECTIONAL;
-    m_light.dir = lightDirection;
-    m_light.color.r = m_light.color.g = m_light.color.b = 1;
-    m_light.id = 0;
+    memset(light, 0, sizeof(CS123SceneLightData));
+    light->type = LIGHT_DIRECTIONAL;
+    light->dir = lightDirection;
+    light->color.r = light->color.g = light->color.b = 1;
+    light->id = 0;
 
     // Store old settings and set shape pointer
     m_shape = NULL;
@@ -48,37 +65,68 @@ ShapesScene::ShapesScene()
                 settings.shapeParameter3
                 );
 
+    m_shapes.clear();
+    m_lights.clear();
+    m_trans.clear();
+
+    m_shapes.append(prim);
+    m_lights.append(light);
+    m_trans.append(glm::mat4());
+
+
     m_initialized = false;
 }
 
 ShapesScene::~ShapesScene()
 {
-    // delete texture
-    if (m_material.textureMap->isUsed) {
-        GLuint id = m_material.textureMap->texid;
-        glDeleteTextures(1, &id);
-    }
+    if (m_square)
+        delete m_square;
+    if (m_ripplePlane)
+        delete m_ripplePlane;
+    if (m_rippleSphere)
+        delete m_rippleSphere;
+}
 
-    // delete texture map and shape
-    delete m_material.textureMap;
-    if (m_shape)
-        delete m_shape;
+
+void ShapesScene::updateCurrentShape() {
+    this->updateShape(m_shape);
 }
 
 void ShapesScene::init()
 {
+    if (m_initialized)
+        return;
 
     OpenGLScene::init(); // Call the superclass's init()
 
-    this->setShape();
-    this->updateShape();
+    this->initShapes(settings.shapeParameter1,
+                     settings.shapeParameter2,
+                     settings.shapeParameter3);
+    m_square = new Shape();
+    m_ripplePlane = new Ripple(settings.shapeParameter1,
+                               settings.shapeParameter2,
+                               0.5f);
+    m_rippleSphere = new RippleSphere(settings.shapeParameter1,
+                                      settings.shapeParameter2,
+                                      settings.shapeParameter3,
+                                      0.5f);
 
-    int texId = loadTexture(QString::fromStdString(m_material.textureMap->filename));
+    updateShapes();
+    this->updateShape(m_square);
+    this->updateShape(m_ripplePlane);
+    this->updateShape(m_rippleSphere);
+
+    this->setShape();
+
+    CS123SceneMaterial& mat = m_shapes.at(0)->material;
+    int texId = loadTexture(QString::fromStdString(mat.textureMap->filename));
     if (texId == -1) {
-        cout << "Texture '" << m_material.textureMap->filename << "' does not exist" << endl;
-        m_material.textureMap->isUsed = 0;
-    } else
-        m_material.textureMap->texid = texId;
+        cout << "Texture '" << mat.textureMap->filename << "' does not exist" << endl;
+        mat.textureMap->isUsed = 0;
+    } else {
+        mat.textureMap->texid = texId;
+        mat.textureMap->isUsed = true;
+    }
 
     m_initialized = true;
 }
@@ -86,52 +134,49 @@ void ShapesScene::init()
 
 void ShapesScene::setShape()
 {
-    if (m_shape) {
-        delete m_shape;
-        m_shape = NULL;
-    }
-
-
     switch (settings.shapeType) {
     case SHAPE_CUBE:
-        m_shape = new Cube(settings.shapeParameter1, SHAPE_RADIUS);
+        m_shape = m_cube;
+        m_shapes.at(0)->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_CONE:
-        m_shape = new Cone(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS, SHAPE_RADIUS);
+        m_shape = m_cone;
+        m_shapes.at(0)->type = PRIMITIVE_CONE;
         break;
     case SHAPE_SPHERE:
-        m_shape = new Sphere(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+        m_shape = m_sphere;
+        m_shapes.at(0)->type = PRIMITIVE_SPHERE;
         break;
     case SHAPE_CYLINDER:
-        m_shape = new Cylinder(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS, SHAPE_RADIUS);
+        m_shape = m_cylinder;
+        m_shapes.at(0)->type = PRIMITIVE_CYLINDER;
         break;
     case SHAPE_TORUS:
-        m_shape = new Torus(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
+        m_shape = m_torus;
+        m_shapes.at(0)->type = PRIMITIVE_TORUS;
         break;
     case SHAPE_SPECIAL_1:
-        m_shape = new Shape();
+        m_shape = m_square;
+        m_shapes.at(0)->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_SPECIAL_2:
-        m_shape = new Ripple(settings.shapeParameter1, settings.shapeParameter2, SHAPE_RADIUS);
+        m_shape = m_ripplePlane;
+        m_shapes.at(0)->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_SPECIAL_3:
-        m_shape = new RippleSphere(settings.shapeParameter1, settings.shapeParameter2, settings.shapeParameter3, SHAPE_RADIUS);
+        m_shape = m_rippleSphere;
+        m_shapes.at(0)->type = PRIMITIVE_CUBE;
         break;
     default: // basic square shape
-        m_shape = new Shape();
+        m_shape = m_square;
+        m_shapes.at(0)->type = PRIMITIVE_CUBE;
         break;
     }
-}
-
-
-void ShapesScene::updateShape()
-{
-    if (!m_shape)
-        return;
-    m_shape->calcVerts();
-    m_shape->updateGL(m_shader);
-    m_shape->updateNormals(m_normalRenderer);
-    m_shape->cleanUp();
+    if (m_shape) {
+        m_shape->setParam1(settings.shapeParameter1);
+        m_shape->setParam2(settings.shapeParameter2);
+        m_shape->setParam3(settings.shapeParameter3);
+    }
 }
 
 /**
@@ -144,14 +189,14 @@ void ShapesScene::update()
 
         m_oldSettings[0] = settings.shapeType;
         setShape();
-        updateShape();
+        updateShape(m_shape);
     }
     else if (m_oldSettings[1] != settings.shapeParameter1 &&
              m_shape->usesParam(1)) {
 
         m_oldSettings[1] = settings.shapeParameter1;
         m_shape->setParam1(settings.shapeParameter1);
-        this->updateShape();
+        this->updateShape(m_shape);
 
     }
     else if (m_oldSettings[2] != settings.shapeParameter2 &&
@@ -159,7 +204,7 @@ void ShapesScene::update()
 
         m_oldSettings[2] = settings.shapeParameter2;
         m_shape->setParam2(settings.shapeParameter2);
-        this->updateShape();
+        this->updateShape(m_shape);
 
     }
     else if (m_oldSettings[3] != settings.shapeParameter3 &&
@@ -167,7 +212,7 @@ void ShapesScene::update()
 
         m_oldSettings[3] = settings.shapeParameter3;
         m_shape->setParam3(settings.shapeParameter3);
-        this->updateShape();
+        this->updateShape(m_shape);
     }
 }
 
@@ -177,7 +222,7 @@ void ShapesScene::renderGeometry()
     if (!m_initialized)
         return;
 
-    applyMaterial(m_material);
+    applyMaterial(m_shapes.at(0)->material);
 
     // Draw the shape.
     if (m_shape)
@@ -198,9 +243,10 @@ void ShapesScene::setLights(const glm::mat4 viewMatrix)
 {
     // YOU DON'T NEED TO TOUCH THIS METHOD, unless you want to do fancy lighting...
 
-    m_light.dir = glm::inverse(viewMatrix) * lightDirection;
+    CS123SceneLightData &light = *(m_lights.at(0));
+    light.dir = glm::inverse(viewMatrix) * lightDirection;
 
     clearLights();
-    setLight(m_light);
+    setLight(light);
 }
 

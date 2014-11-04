@@ -6,14 +6,101 @@
 #include <string>
 #include <sstream>
 #include "QCoreApplication"
+#include "shapes/Cone.h"
+#include "shapes/Cube.h"
+#include "shapes/Cylinder.h"
+#include "shapes/Sphere.h"
+#include "shapes/Torus.h"
+
+#define SHAPE_RADIUS 0.5f
+
 OpenGLScene::OpenGLScene()
 {
+    m_cone = NULL;
+    m_cube = NULL;
+    m_cylinder = NULL;
+    m_sphere = NULL;
+    m_torus = NULL;
+
+    m_initializedShapes = false;
+
     m_normalRenderer = NULL;
 }
 
 OpenGLScene::~OpenGLScene()
 {
+    // delete shapes
+    if (m_initializedShapes) {
+        delete m_cone;
+        delete m_cube;
+        delete m_cylinder;
+        delete m_sphere;
+        delete m_torus;
+    }
+
     delete m_normalRenderer;
+}
+
+
+bool OpenGLScene::isInit()
+{
+    return m_initialized;
+}
+
+
+void OpenGLScene::initShapes(int p1, int p2, float p3)
+{
+    if (!m_initializedShapes) {
+        m_cone = new Cone(p1, p2, SHAPE_RADIUS, SHAPE_RADIUS);
+        m_cube = new Cube(p1, SHAPE_RADIUS);
+        m_cylinder = new Cylinder(p1, p2, SHAPE_RADIUS, SHAPE_RADIUS);
+        m_sphere = new Sphere(p1, p2, SHAPE_RADIUS);
+        m_torus = new Torus(p1, p2, p3, SHAPE_RADIUS);
+
+        m_initializedShapes = true;
+    }
+}
+
+
+void OpenGLScene::setShapeParams(int p1, int p2, float p3)
+{
+    if (m_initializedShapes) {
+        m_cone->setParam1(p1);
+        m_cone->setParam2(p2);
+
+        m_cube->setParam1(p1);
+
+        m_cylinder->setParam1(p1);
+        m_cylinder->setParam2(p2);
+
+        m_sphere->setParam1(p1);
+        m_sphere->setParam2(p2);
+
+        m_torus->setParam1(p1);
+        m_torus->setParam2(p2);
+        m_torus->setParam3(p3);
+    }
+}
+
+
+void OpenGLScene::updateShape(Shape *shape)
+{
+    if (shape) {
+        shape->calcVerts();
+        shape->updateGL(m_shader);
+        shape->updateNormals(m_normalRenderer);
+        shape->cleanUp();
+    }
+}
+
+
+void OpenGLScene::updateShapes()
+{
+    updateShape(m_cone);
+    updateShape(m_cube);
+    updateShape(m_cylinder);
+    updateShape(m_sphere);
+    updateShape(m_torus);
 }
 
 void OpenGLScene::init()
@@ -154,6 +241,7 @@ void OpenGLScene::setLight(const CS123SceneLightData &light)
         if (!settings.useDirectionalLights) ignoreLight = true;
         break;
     default:
+        lightType = -1;
         ignoreLight = true; // Light type not supported
         break;
     }

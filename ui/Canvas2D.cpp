@@ -49,7 +49,8 @@ Canvas2D::Canvas2D()
 Canvas2D::~Canvas2D()
 {
     // @TODO: Be sure to release all memory that you allocate.
-    delete m_scene;
+    if (m_scene)
+        delete m_scene;
     if (m_brush)
         delete m_brush;
     if (m_filter)
@@ -253,7 +254,7 @@ void Canvas2D::renderImage(Camera *camera, int width, int height)
 
         // If you want the interface to stay responsive, make sure to call
         // QCoreApplication::processEvents() periodically during the rendering.
-
+        m_scene->render(this, camera, width, height);
     }
 }
 
@@ -265,7 +266,6 @@ void Canvas2D::cancelRender()
 
 
 void Canvas2D::settingsChanged() {
-
     // TODO: Process changes to the application settings.
 }
 

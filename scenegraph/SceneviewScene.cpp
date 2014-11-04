@@ -8,28 +8,12 @@
 
 SceneviewScene::SceneviewScene()
 {
-    int param = 3; // will be changed later based on scene complexity
-
-    // create shapes
-    m_cone = new Cone(param, param, 0.5f, 0.5f);
-    m_cube = new Cube(param, 0.5f);
-    m_cylinder = new Cylinder(param, param, 0.5f, 0.5f);
-    m_sphere = new Sphere(param, param, 0.5f);
-    m_torus = new Torus(param, param, 25, 0.5);
-
     m_initialized = false;
 }
 
 SceneviewScene::~SceneviewScene()
 {
     // ~Scene() will handle deleting m_shapes and m_lights
-
-    // delete shapes
-    delete m_cone;
-    delete m_cube;
-    delete m_cylinder;
-    delete m_sphere;
-    delete m_torus;
 
     // delete textures
     QSet<GLuint> textureIDs;
@@ -56,39 +40,6 @@ SceneviewScene::~SceneviewScene()
 }
 
 
-void SceneviewScene::setShapeParams(int p1, int p2, float p3)
-{
-    m_cone->setParam1(p1);
-    m_cone->setParam2(p2);
-    m_cone->setParam3(p3);
-
-    m_cube->setParam1(p1);
-    m_cube->setParam2(p2);
-    m_cube->setParam3(p3);
-
-    m_cylinder->setParam1(p1);
-    m_cylinder->setParam2(p2);
-    m_cylinder->setParam3(p3);
-
-    m_sphere->setParam1(p1);
-    m_sphere->setParam2(p2);
-    m_sphere->setParam3(p3);
-
-    m_torus->setParam1(p1);
-    m_torus->setParam2(p2);
-    m_torus->setParam3(p3);
-}
-
-
-void SceneviewScene::updateShape(Shape *shape)
-{
-    shape->calcVerts();
-    shape->updateGL(m_shader);
-//    shape->updateNormals(m_normalRenderer);
-    shape->cleanUp();
-}
-
-
 void SceneviewScene::init()
 {
     OpenGLScene::init();
@@ -97,26 +48,22 @@ void SceneviewScene::init()
 
     // adjust tessellation based on scene complexity
     if (num_shapes <= 1)
-        setShapeParams(100, 100, 20);
+        initShapes(100, 100, 20.f);
     else if (num_shapes <= 50)
-        setShapeParams(70, 70, 20);
+        initShapes(70, 70, 20.f);
     else if (num_shapes <= 100)
-        setShapeParams(50, 50, 20);
+        initShapes(50, 50, 20.f);
     else if (num_shapes <= 200)
-        setShapeParams(25, 25, 20);
+        initShapes(25, 25, 20.f);
     else if (num_shapes <= 1000)
-        setShapeParams(15, 15, 20);
+        initShapes(15, 15, 20.f);
     else if (num_shapes <= 10000)
-        setShapeParams(7, 7, 20);
+        initShapes(7, 7, 20.f);
     else
-        setShapeParams(3, 3, 20);
+        initShapes(3, 3, 20.f);
 
     // set shape vertices and make gl calls
-    updateShape(m_cone);
-    updateShape(m_cube);
-    updateShape(m_cylinder);
-    updateShape(m_sphere);
-    updateShape(m_torus);
+    updateShapes();
 
     // load and set texture ids
     QString filename;

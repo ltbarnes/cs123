@@ -22,10 +22,22 @@ public:
 
     static void parse(Scene *sceneToFill, CS123ISceneParser *parser);
 
+    virtual CS123SceneGlobalData getGlobalData();
+
+    virtual CS123ScenePrimitive *getPrimitive(int i);
+
+    virtual glm::mat4 getMatrix(int i);
+
+    virtual CS123SceneLightData *getLightData(int i);
+
+    virtual int getNumShapes();
+
+    virtual int getNumLights();
+
 protected:
 
     // Adds a primitive to the scene.
-    virtual void addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4x4 &matrix);
+    virtual void addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4 &matrix);
 
     // Adds a light to the scene.
     virtual void addLight(const CS123SceneLightData &sceneLight);
@@ -39,8 +51,6 @@ protected:
     QList<CS123SceneLightData*>  m_lights;
     QList<CS123ScenePrimitive*> m_shapes;
     QList<glm::mat4> m_trans;
-
-    bool m_initialized;
 
 private:
     void nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans);

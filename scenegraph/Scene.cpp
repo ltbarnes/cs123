@@ -46,9 +46,9 @@ void Scene::parse(Scene *sceneToFill, CS123ISceneParser *parser)
 
     // handle light
     int light_num = parser->getNumLights();
+    CS123SceneLightData lightData;
     for (int i = 0; i < light_num; i++)
     {
-        CS123SceneLightData lightData;
         parser->getLightData(i, lightData);
         sceneToFill->addLight(lightData);
     }
@@ -151,7 +151,7 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
     }
 }
 
-void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4x4 &matrix)
+void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4 &matrix)
 {
     // make new primitive
     CS123ScenePrimitive *sp = new CS123ScenePrimitive();
@@ -271,5 +271,56 @@ int Scene::loadTexture(const QString &filename)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     return id;
+}
+
+
+int Scene::getNumShapes()
+{
+    return m_shapes.size();
+}
+
+
+int Scene::getNumLights()
+{
+    return m_lights.size();
+}
+
+
+CS123SceneGlobalData Scene::getGlobalData()
+{
+    return m_global;
+}
+
+
+CS123ScenePrimitive* Scene::getPrimitive(int i)
+{
+    if (i < 0 || (unsigned int)i >= m_shapes.size())
+    {
+        cout << "invalid light index %d" << endl;
+        return NULL;
+    }
+    return m_shapes[i];
+}
+
+
+glm::mat4 Scene::getMatrix(int i)
+{
+    if (i < 0 || (unsigned int)i >= m_trans.size())
+    {
+        cout << "invalid light index %d" << endl;
+        return glm::mat4();
+    }
+    return m_trans[i];
+}
+
+
+CS123SceneLightData* Scene::getLightData(int i)
+{
+    if (i < 0 || (unsigned int)i >= m_lights.size())
+    {
+        cout << "invalid light index %d" << endl;
+        return NULL;
+    }
+    return m_lights[i];
 }
 

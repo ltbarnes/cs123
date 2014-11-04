@@ -107,7 +107,7 @@ void Canvas3D::timerEvent(QTimerEvent *)
 
         // if the shape can be animated and needs to be re-rendered
         if (render) {
-            scene->updateShape();
+            scene->updateCurrentShape();
             SupportCanvas3D::settingsChanged();
         }
     }

@@ -4,10 +4,12 @@
 #include "Scene.h"
 #include <map>
 
+
 // Maximum number of lights, as defined in shader.
 #define MAX_NUM_LIGHTS 10
 
 class SupportCanvas3D;
+class Shape;
 
 using std::string;
 
@@ -184,6 +186,8 @@ public:
     // Renders arrows for the normals that were initialized using initNormals(...).
     void renderNormals();
 
+    bool isInit();
+
 protected:
     // Set all lights to black.
     void clearLights();
@@ -201,11 +205,32 @@ protected:
     // Set the necessary uniforms for the light properties.
     void setLight(const CS123SceneLightData &light);
 
+    // initialize the shapes with the given parameters
+    void initShapes(int p1, int p2, float p3);
+
+    // updates all the shape parameters
+    void setShapeParams(int p1, int p2, float p3);
+
+    // updates the current shape
+    void updateShape(Shape *shape);
+
+    // updates all the shapes
+    void updateShapes();
+
     // The program ID for OpenGL.
     GLuint m_shader;
 
     // The normal renderer, which can be used to render arrows for each normal in Shapes.
     NormalRenderer *m_normalRenderer;
+
+    Shape *m_cone;
+    Shape *m_cube;
+    Shape *m_cylinder;
+    Shape *m_sphere;
+    Shape *m_torus;
+
+    bool m_initialized;
+    bool m_initializedShapes;
 
 private:
 

@@ -42,6 +42,20 @@ glm::mat4x4 OrbitingCamera::getViewMatrix() const
     return m_viewMatrix;
 }
 
+
+glm::mat4x4 OrbitingCamera::getScaleMatrix() const
+{
+    float far = std::max(settings.cameraFar, settings.cameraNear + 100.f * FLT_EPSILON);
+    float h = 2.0 * far * glm::tan(glm::radians(settings.cameraFov / 2.f));
+    float w = m_aspectRatio * h;
+
+    glm::mat4 scale = glm::mat4x4(1.0 / (w / 2.0),       0.0,          0.0,     0.0,
+                                  0.0,             1.0 / (h / 2.0),    0.0,     0.0,
+                                  0.0,                   0.0,       1.0 / far,  0.0,
+                                  0.0,                   0.0,          0.0,     1.0);
+    return glm::transpose(scale);
+}
+
 void OrbitingCamera::mouseDown(int x, int y)
 {
     m_oldX = x;
@@ -73,6 +87,7 @@ void OrbitingCamera::updateMatrices()
 {
     updateProjectionMatrix();
     updateViewMatrix();
+//    updateScaleMatrix();
 }
 
 void OrbitingCamera::updateProjectionMatrix()

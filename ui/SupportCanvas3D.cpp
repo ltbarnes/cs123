@@ -66,7 +66,7 @@ void SupportCanvas3D::settingsChanged()
         sh = dynamic_cast<ShapesScene *>(this->getScene());
         if (!sh)
         {
-            sh = new ShapesScene;
+            sh = new ShapesScene();
             if (isInitialized()) sh->init();
             setScene(sh);
         }
