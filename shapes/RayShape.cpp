@@ -16,6 +16,12 @@ float RayShape::intersects(glm::vec4 p, glm::vec4 d)
 }
 
 
+glm::vec4 RayShape::getNormal(glm::vec4 point)
+{
+    return glm::vec4();
+}
+
+
 int RayShape::findT(glm::vec4 p, glm::vec4 d, float *t1, float *t2)
 {
     return 0;

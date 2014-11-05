@@ -10,6 +10,24 @@ RayCylinder::~RayCylinder()
 }
 
 
+glm::vec4 RayCylinder::getNormal(glm::vec4 point)
+{
+    if (EQ(point.y, 0.5)) {
+//        assert(point.x * point.x + point.z * point.z <= 0.5f);
+        return glm::vec4(0, 1, 0, 0);
+    }
+    if (EQ(point.y, -0.5)) {
+//        assert(point.x * point.x + point.z * point.z <= 0.5f);
+        return glm::vec4(0, -1, 0, 0);
+    }
+    else {
+//        assert(EQ(point.x * point.x + point.z * point.z, 0.5f));
+        return glm::vec4(point.x, 0, point.z, 0);
+    }
+    return glm::vec4();
+}
+
+
 float RayCylinder::intersects(glm::vec4 p, glm::vec4 d)
 {
     float t1 = std::numeric_limits<float>::infinity();

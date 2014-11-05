@@ -10,6 +10,12 @@ RayCone::~RayCone()
 }
 
 
+glm::vec4 RayCone::getNormal(glm::vec4 point)
+{
+    return glm::vec4();
+}
+
+
 float RayCone::intersects(glm::vec4 p, glm::vec4 d)
 {
     float t1 = std::numeric_limits<float>::infinity();

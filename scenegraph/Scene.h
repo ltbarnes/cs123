@@ -37,7 +37,7 @@ public:
 protected:
 
     // Adds a primitive to the scene.
-    virtual void addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4 &matrix);
+    virtual void addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4 &matrix, bool useCoeff);
 
     // Adds a light to the scene.
     virtual void addLight(const CS123SceneLightData &sceneLight);

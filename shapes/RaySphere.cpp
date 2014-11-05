@@ -10,6 +10,14 @@ RaySphere::~RaySphere()
 }
 
 
+glm::vec4 RaySphere::getNormal(glm::vec4 point)
+{
+//    cout << point.x * point.x + point.y * point.y + point.z * point.z << endl;
+//    assert(EQ(point.x * point.x + point.y * point.y + point.z * point.z - 0.25));
+    return glm::normalize(glm::vec4(point.x, point.y, point.z, 0.f));
+}
+
+
 float RaySphere::intersects(glm::vec4 p, glm::vec4 d)
 {
     float t1 = std::numeric_limits<float>::infinity();

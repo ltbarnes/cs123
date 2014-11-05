@@ -13,18 +13,26 @@
 
 RayScene::RayScene()
 {
-    m_cone = new RayCone();
-    m_cube = new RayCube();
-    m_cylinder = new RayCylinder();
-    m_sphere = new RaySphere();
+    m_primShapes.insert(PRIMITIVE_CONE, new RayCone());
+    m_primShapes.insert(PRIMITIVE_CUBE, new RayCube());
+    m_primShapes.insert(PRIMITIVE_CYLINDER, new RayCylinder());
+    m_primShapes.insert(PRIMITIVE_SPHERE, new RaySphere());
+//    m_cone = new RayCone();
+//    m_cube = new RayCube();
+//    m_cylinder = new RayCylinder();
+//    m_sphere = new RaySphere();
 }
 
 RayScene::~RayScene()
 {
-    delete m_cone;
-    delete m_cube;
-    delete m_cylinder;
-    delete m_sphere;
+    m_primShapes.value(PRIMITIVE_CONE);
+    m_primShapes.value(PRIMITIVE_CUBE);
+    m_primShapes.value(PRIMITIVE_CYLINDER);
+    m_primShapes.value(PRIMITIVE_SPHERE);
+//    delete m_cone;
+//    delete m_cube;
+//    delete m_cylinder;
+//    delete m_sphere;
 }
 
 
@@ -34,7 +42,7 @@ void RayScene::transferSceneData(Scene *scene)
 
     int n = scene->getNumShapes();
     for (int i = 0; i < n; i++) {
-        this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i));
+        this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i), false);
     }
 
     n = scene->getNumLights();
@@ -46,7 +54,6 @@ void RayScene::transferSceneData(Scene *scene)
 
 void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 {
-
     canvas->resize(width, height);
     BGRA* pix = canvas->data();
 
@@ -77,9 +84,11 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
         for (int x = 0; x < width; x++) {
 
             color = rayTrace(x, y, xmax, ymax, p_eye, M_ftw);
+//            assert(color.r <= 1.f);
             pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
             pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
             pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
+//            assert(color.r * 255.f + 0.5 <= 255.5f);
 
             i++;
         }
@@ -91,8 +100,7 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
 glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
-    // GET RID OF THE " - 0.5" AFTER DEBUGGING!!!
-    glm::vec4 farFilm = glm::vec4((x - .0) * 2.0 / xmax - 1.f, 1.f - y * 2.0 / ymax, -1.f, 1);
+    glm::vec4 farFilm = glm::vec4(x * 2.0 / xmax - 1.f, 1.f - y * 2.0 / ymax, -1.f, 1);
     glm::vec4 farWorld = M_ftw * farFilm;
     glm::vec4 d_world = glm::normalize(farWorld - p_eye);
 
@@ -105,7 +113,7 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
     int bestIndex;
     float bestT = std::numeric_limits<float>::infinity();
     float currT = std::numeric_limits<float>::infinity();
-    CS123ScenePrimitive *currShape;
+    RayShape *shape;
 
     int num_shapes = m_shapes.size();
     for (int i = 0; i < num_shapes; i++) {
@@ -118,45 +126,62 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
 //        cout << "D: " << glm::to_string(d) << endl;
 
 
-        currShape = m_shapes.at(i);
-        switch(currShape->type) {
-        case PRIMITIVE_CONE:
-            currT = m_cone->intersects(p, d);
-            break;
-        case PRIMITIVE_CUBE:
-            currT = m_cube->intersects(p, d);
-            break;
-        case PRIMITIVE_CYLINDER:
-            currT = m_cylinder->intersects(p, d);
-            break;
-        case PRIMITIVE_MESH:
-            currT = std::numeric_limits<float>::infinity();
-            break;
-        case PRIMITIVE_SPHERE:
-            currT = m_sphere->intersects(p, d);
-            break;
-        case PRIMITIVE_TORUS:
-            currT = std::numeric_limits<float>::infinity();
-            break;
-        default:
-            currT = std::numeric_limits<float>::infinity();
-            break;
-        }
+        shape = m_primShapes.value(m_shapes.at(i)->type);
+        if (shape) {
+            currT = shape->intersects(p, d);
 
-        assert(currT >= 0);
-        if (currT < bestT) {
-            bestT = currT;
-            bestIndex = i;
+            assert(currT >= 0);
+            if (currT < bestT) {
+                bestT = currT;
+                bestIndex = i;
+            }
         }
     }
 
-    if (bestT < std::numeric_limits<float>::infinity())
-        return glm::vec3(1, 1, 1);
+    if (bestT < std::numeric_limits<float>::infinity()) {
+        shape = m_primShapes.value(m_shapes.at(bestIndex)->type);
 
-//    if ((x == 0 && y == 0) || (x == xmax && y == ymax)) {
-//        cout << glm::to_string(p_film) << endl;
-//        cout << glm::to_string(p_world) << endl;
-//    }
+        glm::vec4 point = p + bestT * d;
+        glm::vec4 n = shape->getNormal(point);
+        point = m_trans.at(bestIndex) * point;
+
+        n = glm::vec4(glm::normalize(glm::transpose(glm::inverse(glm::mat3(m_trans.at(bestIndex)))) * glm::vec3(n)), 0);
+
+        CS123SceneLightData *light;
+        CS123SceneMaterial &mat = m_shapes.at(bestIndex)->material;
+
+        int num_lights = m_lights.size();
+
+        glm::vec3 color = glm::vec3();
+        glm::vec3 amb = glm::vec3(mat.cAmbient.r, mat.cAmbient.g, mat.cAmbient.b);
+        glm::vec3 diff = glm::vec3(mat.cDiffuse.r, mat.cDiffuse.g, mat.cDiffuse.b);
+
+        glm::vec3 coeff;
+        glm::vec4 pToL;
+        float nDotL;
+        for (int i = 0; i < num_lights; i++) {
+            light = m_lights.at(i);
+
+            if (light->type == LIGHT_POINT)
+                pToL = glm::normalize(light->pos - point);
+            if (light->type == LIGHT_DIRECTIONAL)
+                pToL = -glm::normalize(light->dir);
+
+            nDotL = std::max(0.f, glm::dot(n, pToL));
+
+            coeff.r = diff.r * nDotL;
+            coeff.g = diff.g * nDotL;
+            coeff.b = diff.b * nDotL;
+
+            color.r += light->color.r * coeff.r;
+            color.g += light->color.g * coeff.g;
+            color.b += light->color.b * coeff.b;
+        }
+        color.r = std::min(1.f, color.r + amb.r);
+        color.g = std::min(1.f, color.g + amb.g);
+        color.b = std::min(1.f, color.b + amb.b);
+        return color;
+    }
 
     return glm::vec3();
 }

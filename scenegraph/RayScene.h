@@ -26,10 +26,11 @@ private:
 
     glm::vec3 rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
 
-    RayShape *m_cone;
-    RayShape *m_cube;
-    RayShape *m_cylinder;
-    RayShape *m_sphere;
+    QHash<PrimitiveType, RayShape*> m_primShapes;
+//    RayShape *m_cone;
+//    RayShape *m_cube;
+//    RayShape *m_cylinder;
+//    RayShape *m_sphere;
 };
 
 #endif // RAYSCENE_H

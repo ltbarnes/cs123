@@ -53,7 +53,7 @@ ShapesScene::ShapesScene()
     memset(light, 0, sizeof(CS123SceneLightData));
     light->type = LIGHT_DIRECTIONAL;
     light->dir = lightDirection;
-    light->color.r = light->color.g = light->color.b = 1;
+    light->color.r = light->color.g = light->color.b = 1.f;
     light->id = 0;
 
     // Store old settings and set shape pointer
@@ -248,5 +248,8 @@ void ShapesScene::setLights(const glm::mat4 viewMatrix)
 
     clearLights();
     setLight(light);
+//    cout << light.color.r << ", ";
+//    cout << light.color.g << ", ";
+//    cout << light.color.b << endl;
 }
 

@@ -139,7 +139,7 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
     int num_prims = prims.size();
     for (i = 0; i < num_prims; i++) {
         CS123ScenePrimitive* prim = prims[i];
-        scene->addPrimitive(*prim, trans);
+        scene->addPrimitive(*prim, trans, true);
     }
 
     // recur through all child nodes
@@ -151,7 +151,7 @@ void Scene::nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans)
     }
 }
 
-void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4 &matrix)
+void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::mat4 &matrix, bool useCoeff)
 {
     // make new primitive
     CS123ScenePrimitive *sp = new CS123ScenePrimitive();
@@ -173,10 +173,17 @@ void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::m
     copyFileMap(mat.textureMap, material.textureMap);
     copyFileMap(mat.bumpMap, material.bumpMap);
 
-    setColor(&mat.cAmbient, &material.cAmbient, m_global.ka);
-    setColor(&mat.cDiffuse, &material.cDiffuse, m_global.kd);
-    setColor(&mat.cSpecular, &material.cSpecular, m_global.ks);
-    setColor(&mat.cTransparent, &material.cTransparent, m_global.kt);
+    if (useCoeff) {
+        setColor(&mat.cAmbient, &material.cAmbient, m_global.ka);
+        setColor(&mat.cDiffuse, &material.cDiffuse, m_global.kd);
+        setColor(&mat.cSpecular, &material.cSpecular, m_global.ks);
+        setColor(&mat.cTransparent, &material.cTransparent, m_global.kt);
+    } else {
+        setColor(&mat.cAmbient, &material.cAmbient, 1.f);
+        setColor(&mat.cDiffuse, &material.cDiffuse, 1.f);
+        setColor(&mat.cSpecular, &material.cSpecular, 1.f);
+        setColor(&mat.cTransparent, &material.cTransparent, 1.f);
+    }
 
     mat.blend = material.blend;
     mat.ior = material.ior;
