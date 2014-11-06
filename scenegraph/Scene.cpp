@@ -297,7 +297,7 @@ CS123SceneGlobalData Scene::getGlobalData()
 
 CS123ScenePrimitive* Scene::getPrimitive(int i)
 {
-    if (i < 0 || (unsigned int)i >= m_shapes.size())
+    if (i < 0 || i >= m_shapes.size())
     {
         cout << "invalid light index %d" << endl;
         return NULL;
@@ -308,7 +308,7 @@ CS123ScenePrimitive* Scene::getPrimitive(int i)
 
 glm::mat4 Scene::getMatrix(int i)
 {
-    if (i < 0 || (unsigned int)i >= m_trans.size())
+    if (i < 0 || i >= m_trans.size())
     {
         cout << "invalid light index %d" << endl;
         return glm::mat4();
@@ -319,7 +319,7 @@ glm::mat4 Scene::getMatrix(int i)
 
 CS123SceneLightData* Scene::getLightData(int i)
 {
-    if (i < 0 || (unsigned int)i >= m_lights.size())
+    if (i < 0 || i >= m_lights.size())
     {
         cout << "invalid light index %d" << endl;
         return NULL;
