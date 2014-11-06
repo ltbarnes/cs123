@@ -10,9 +10,9 @@ RayShape::~RayShape()
 }
 
 
-float RayShape::intersects(glm::vec4 p, glm::vec4 d)
+glm::vec4 RayShape::intersects(glm::vec4 p, glm::vec4 d)
 {
-    return 0.f;
+    return glm::vec4();
 }
 
 

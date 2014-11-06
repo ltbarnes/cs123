@@ -9,11 +9,11 @@ public:
     RayCone();
     virtual ~RayCone();
 
-    virtual float intersects(glm::vec4 p, glm::vec4 d);
-    virtual glm::vec4 getNormal(glm::vec4 point);
+    virtual glm::vec4 intersects(glm::vec4 p, glm::vec4 d);
 
 protected:
     virtual int findT(glm::vec4 p, glm::vec4 d, float* t1, float* t2);
+    virtual glm::vec4 getNormal(glm::vec4 point);
 };
 
 #endif // RAYCONE_H

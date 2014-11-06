@@ -18,11 +18,12 @@ glm::vec4 RaySphere::getNormal(glm::vec4 point)
 }
 
 
-float RaySphere::intersects(glm::vec4 p, glm::vec4 d)
+glm::vec4 RaySphere::intersects(glm::vec4 p, glm::vec4 d)
 {
     float t1 = std::numeric_limits<float>::infinity();
     float t2 = std::numeric_limits<float>::infinity();
     glm::vec4 v;
+    glm::vec4 n = glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 
     int tees = findT(p, d, &t1, &t2);
 
@@ -30,13 +31,21 @@ float RaySphere::intersects(glm::vec4 p, glm::vec4 d)
         v = p + t1 * d;
         if (v.y > 0.5 || v.y < -0.5 || t1 < 0)
             t1 = std::numeric_limits<float>::infinity();
+        if (t1 < n.w) {
+            v.w = t1;
+            n = v;
+        }
         if (tees == 2) {
             v = p + t2 * d;
             if (v.y > 0.5 || v.y < -0.5 || t2 < 0)
                 t2 = std::numeric_limits<float>::infinity();
+            if (t2 < n.w) {
+                v.w = t2;
+                n = v;
+            }
         }
     }
-    return std::min(t1, t2);
+    return n;
 }
 
 

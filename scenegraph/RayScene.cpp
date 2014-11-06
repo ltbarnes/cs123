@@ -110,9 +110,9 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
 
     glm::vec4 p, d;
     glm::mat4 M_inv;
-    int bestIndex;
-    float bestT = std::numeric_limits<float>::infinity();
-    float currT = std::numeric_limits<float>::infinity();
+    int bestIndex = -1;
+    glm::vec4 bestT = glm::vec4(0.f, 0.f, 0.f, std::numeric_limits<float>::infinity());
+    glm::vec4 nt;
     RayShape *shape;
 
     int num_shapes = m_shapes.size();
@@ -128,24 +128,23 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
 
         shape = m_primShapes.value(m_shapes.at(i)->type);
         if (shape) {
-            currT = shape->intersects(p, d);
+            nt = shape->intersects(p, d);
 
-            assert(currT >= 0);
-            if (currT < bestT) {
-                bestT = currT;
+            assert(nt.w >= 0);
+            if (nt.w < bestT.w) {
+                bestT = nt;
                 bestIndex = i;
             }
         }
     }
 
-    if (bestT < std::numeric_limits<float>::infinity()) {
+    if (bestT.w < std::numeric_limits<float>::infinity()) {
         shape = m_primShapes.value(m_shapes.at(bestIndex)->type);
 
-        glm::vec4 point = p + bestT * d;
-        glm::vec4 n = shape->getNormal(point);
+        glm::vec4 point = p + bestT.w * d;
         point = m_trans.at(bestIndex) * point;
 
-        n = glm::vec4(glm::normalize(glm::transpose(glm::inverse(glm::mat3(m_trans.at(bestIndex)))) * glm::vec3(n)), 0);
+        glm::vec4 n = glm::vec4(glm::normalize(glm::transpose(glm::inverse(glm::mat3(m_trans.at(bestIndex)))) * glm::vec3(bestT)), 0);
 
         CS123SceneLightData *light;
         CS123SceneMaterial &mat = m_shapes.at(bestIndex)->material;
@@ -159,6 +158,7 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
         glm::vec3 coeff;
         glm::vec4 pToL;
         float nDotL;
+
         for (int i = 0; i < num_lights; i++) {
             light = m_lights.at(i);
 
@@ -181,6 +181,7 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
         color.g = std::min(1.f, color.g + amb.g);
         color.b = std::min(1.f, color.b + amb.b);
         return color;
+//        return glm::vec3(1);
     }
 
     return glm::vec3();

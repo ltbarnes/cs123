@@ -1,5 +1,7 @@
 #include "RayCone.h"
 
+#define SLOPE 0.5f
+
 RayCone::RayCone()
 {
 }
@@ -16,11 +18,13 @@ glm::vec4 RayCone::getNormal(glm::vec4 point)
 }
 
 
-float RayCone::intersects(glm::vec4 p, glm::vec4 d)
+glm::vec4 RayCone::intersects(glm::vec4 p, glm::vec4 d)
 {
     float t1 = std::numeric_limits<float>::infinity();
     float t2 = std::numeric_limits<float>::infinity();
+    float mag;
     glm::vec4 v;
+    glm::vec4 n = glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 
     int tees = findT(p, d, &t1, &t2);
 
@@ -28,10 +32,18 @@ float RayCone::intersects(glm::vec4 p, glm::vec4 d)
         v = p + t1 * d;
         if (v.y > 0.5 || v.y < -0.5 || t1 < 0)
             t1 = std::numeric_limits<float>::infinity();
+        if (t1 < n.w) {
+            mag = sqrt(v.x * v.x + v.z * v.z);
+            n = glm::vec4(v.x, SLOPE * mag, v.z, t1);
+        }
         if (tees == 2) {
             v = p + t2 * d;
             if (v.y > 0.5 || v.y < -0.5 || t2 < 0)
                 t2 = std::numeric_limits<float>::infinity();
+            if (t2 < n.w) {
+                mag = sqrt(v.x * v.x + v.z * v.z);
+                n = glm::vec4(v.x, SLOPE * mag, v.z, t2);
+            }
         }
     }
 
@@ -40,8 +52,10 @@ float RayCone::intersects(glm::vec4 p, glm::vec4 d)
 
     if (v.x * v.x + v.z * v.z > 0.25f || t3 < 0)
         t3 = std::numeric_limits<float>::infinity();
-
-    return std::min(t1, std::min(t2, t3));
+    if (t3 < n.w) {
+        n = glm::vec4(0, -1, 0, t3);
+    }
+    return n;
 }
 
 
