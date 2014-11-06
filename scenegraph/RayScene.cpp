@@ -163,6 +163,7 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
             light = m_lights.at(i);
 
             if (light->type == LIGHT_POINT)
+                cout << glm::to_string(light->pos) << endl;
                 pToL = glm::normalize(light->pos - point);
             if (light->type == LIGHT_DIRECTIONAL)
                 pToL = -glm::normalize(light->dir);
