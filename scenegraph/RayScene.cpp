@@ -59,24 +59,11 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
 
-//    cout << "VIEW: " << endl;
-//    cout << glm::to_string(camera->getViewMatrix()) << endl;
-//    cout << "SCALE: " << endl;
-//    cout << glm::to_string(camera->getScaleMatrix()) << endl;
-//    cout << "BOTH: " << endl;
-//    cout << glm::to_string(camera->getProjectionMatrix() * camera->getViewMatrix()) << endl;
-
     glm::vec3 color;
     int ymax = height - 1;
     int xmax = width - 1;
 
     glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
-//    cout << canvas->width() << ", " << canvas->height() << endl;
-//    cout << width << ", " << height << endl;
-
-//    cout << "EYE: " << glm::to_string(p_eye) << endl;
-
-//    rayTrace(width / 2, height / 2, xmax, ymax, p_eye, M_ftw);
 
     int i;
     for (int y = 0; y < height; y++) {
@@ -84,11 +71,9 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
         for (int x = 0; x < width; x++) {
 
             color = rayTrace(x, y, xmax, ymax, p_eye, M_ftw);
-//            assert(color.r <= 1.f);
             pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
             pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
             pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
-//            assert(color.r * 255.f + 0.5 <= 255.5f);
 
             i++;
         }
@@ -104,10 +89,6 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
     glm::vec4 farWorld = M_ftw * farFilm;
     glm::vec4 d_world = glm::normalize(farWorld - p_eye);
 
-//    cout << "FILM: " << glm::to_string(farFilm) << endl;
-//    cout << "WORLD: " << glm::to_string(farWorld) << endl;
-//    cout << "D_WORLD: " << glm::to_string(d_world) << endl;
-
     glm::vec4 p, d;
     glm::mat4 M_inv;
     int bestIndex = -1;
@@ -121,10 +102,6 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
         M_inv = glm::inverse(m_trans.at(i));
         p = M_inv * p_eye;
         d = M_inv * d_world;
-
-//        cout << "P: " << glm::to_string(p) << endl;
-//        cout << "D: " << glm::to_string(d) << endl;
-
 
         shape = m_primShapes.value(m_shapes.at(i)->type);
         if (shape) {
@@ -141,8 +118,8 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
     if (bestT.w < std::numeric_limits<float>::infinity()) {
         shape = m_primShapes.value(m_shapes.at(bestIndex)->type);
 
-        glm::vec4 point = p + bestT.w * d;
-        point = m_trans.at(bestIndex) * point;
+        glm::vec4 point = p_eye + bestT.w * d_world;
+
 
         glm::vec4 n = glm::vec4(glm::normalize(glm::transpose(glm::inverse(glm::mat3(m_trans.at(bestIndex)))) * glm::vec3(bestT)), 0);
 
@@ -163,9 +140,8 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
             light = m_lights.at(i);
 
             if (light->type == LIGHT_POINT)
-                cout << glm::to_string(light->pos) << endl;
                 pToL = glm::normalize(light->pos - point);
-            if (light->type == LIGHT_DIRECTIONAL)
+            else if (light->type == LIGHT_DIRECTIONAL)
                 pToL = -glm::normalize(light->dir);
 
             nDotL = std::max(0.f, glm::dot(n, pToL));
@@ -182,7 +158,6 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
         color.g = std::min(1.f, color.g + amb.g);
         color.b = std::min(1.f, color.b + amb.b);
         return color;
-//        return glm::vec3(1);
     }
 
     return glm::vec3();
