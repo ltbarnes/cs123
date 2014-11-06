@@ -48,7 +48,7 @@ protected:
     int loadTexture(const QString &filename);
 
     CS123SceneGlobalData m_global;
-    QList<CS123SceneLightData*>  m_lights;
+    QList<CS123SceneLightData*> m_lights;
     QList<CS123ScenePrimitive*> m_shapes;
     QList<glm::mat4> m_trans;
 

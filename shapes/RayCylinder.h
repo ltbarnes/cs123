@@ -10,7 +10,6 @@ public:
     virtual ~RayCylinder();
 
     virtual glm::vec4 intersects(glm::vec4 p, glm::vec4 d);
-    virtual glm::vec4 getNormal(glm::vec4 point);
 
 private:
     int findT(glm::vec4 p, glm::vec4 d, float *t1, float *t2);

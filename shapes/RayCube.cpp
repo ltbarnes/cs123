@@ -10,90 +10,44 @@ RayCube::~RayCube()
 }
 
 
-glm::vec4 RayCube::getNormal(glm::vec4 point)
-{
-    if (EQ(point.z, 0.5)) {
-        return glm::vec4(0, 0, 1, 0);
-    } if (EQ(point.z, -0.5)) {
-        return glm::vec4(0, 0, -1, 0);
-    } if (EQ(point.y, 0.5)) {
-        return glm::vec4(0, 1, 0, 0);
-    } if (EQ(point.y, -0.5)) {
-        return glm::vec4(0, -1, 0, 0);
-    } if (EQ(point.x, 0.5)) {
-        return glm::vec4(1, 0, 0, 0);
-    } if (EQ(point.x, -0.5)) {
-        return glm::vec4(-1, 0, 0, 0);
-    }
-    return glm::vec4();
-}
-
-
 glm::vec4 RayCube::intersects(glm::vec4 p, glm::vec4 d)
 {
-    float currT;
-    glm::vec4 v;
-    glm::vec4 n = glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
+    float tmin, tmax, tymin, tymax, txmin, txmax;
+    glm::vec4 n;
+    glm::vec3 minMax[2] = {glm::vec3(-0.5f), glm::vec3(0.5f)};
+    bool sign[3] = {d.x < 0, d.y < 0, d.z < 0};
 
-    // top plane
-    currT = (0.5 - p.y) / d.y;
-    v = p + currT * d;
+    tmin = (minMax[sign[2]].z - p.z) / d.z;
+    tmax = (minMax[!sign[2]].z - p.z) / d.z;
+    tymin = (minMax[sign[1]].y - p.y) / d.y;
+    tymax = (minMax[!sign[1]].y - p.y) / d.y;
 
-    if (v.x > 0.5 || v.x < -0.5 || v.z > 0.5f || v.z < -0.5 || currT < 0)
-        currT = std::numeric_limits<float>::infinity();
-    if (currT < n.w) {
-        n = glm::vec4(0, 1, 0, currT);
+    if (tmin > tymax || tymin > tmax)
+        return glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
+
+    if (tymin > tmin) {
+        tmin = tymin;
+        n = glm::vec4(0, (sign[1] ? 1 : -1), 0, tmin);
+    } else
+        n = glm::vec4(0, 0, (sign[2] ? 1 : -1), tmin);
+    if (tymax < tmax)
+        tmax = tymax;
+
+    txmin = (minMax[sign[0]].x - p.x) / d.x;
+    txmax = (minMax[!sign[0]].x - p.x) / d.x;
+
+    if (tmin > txmax || txmin > tmax)
+        return glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
+
+    if (txmin > tmin) {
+        tmin = txmin;
+        n = glm::vec4((sign[0] ? 1 : -1), 0, 0, tmin);
     }
+    if (txmax < tmax)
+        tmax = txmax;
 
-    // bottom plane
-    currT = (-0.5 - p.y) / d.y;
-    v = p + currT * d;
-
-    if (v.x > 0.5 || v.x < -0.5 || v.z > 0.5f || v.z < -0.5 || currT < 0)
-        currT = std::numeric_limits<float>::infinity();
-    if (currT < n.w) {
-        n = glm::vec4(0, -1, 0, currT);
-    }
-
-    // front plane
-    currT = (0.5 - p.z) / d.z;
-    v = p + currT * d;
-
-    if (v.x > 0.5 || v.x < -0.5 || v.y > 0.5f || v.y < -0.5 || currT < 0)
-        currT = std::numeric_limits<float>::infinity();
-    if (currT < n.w) {
-        n = glm::vec4(0, 0, 1, currT);
-    }
-
-    // back plane
-    currT = (-0.5 - p.z) / d.z;
-    v = p + currT * d;
-
-    if (v.x > 0.5 || v.x < -0.5 || v.y > 0.5f || v.y < -0.5 || currT < 0)
-        currT = std::numeric_limits<float>::infinity();
-    if (currT < n.w) {
-        n = glm::vec4(0, 0, -1, currT);
-    }
-
-    // right plane
-    currT = (0.5 - p.x) / d.x;
-    v = p + currT * d;
-
-    if (v.y > 0.5 || v.y < -0.5 || v.z > 0.5f || v.z < -0.5 || currT < 0)
-        currT = std::numeric_limits<float>::infinity();
-    if (currT < n.w) {
-        n = glm::vec4(1, 0, 0, currT);
-    }
-
-    // left plane
-    currT = (-0.5 - p.x) / d.x;
-    v = p + currT * d;
-
-    if (v.y > 0.5 || v.y < -0.5 || v.z > 0.5f || v.z < -0.5 || currT < 0)
-        currT = std::numeric_limits<float>::infinity();
-    if (currT < n.w) {
-        n = glm::vec4(-1, 0, 0, currT);
-    }
-
-    return n;
+    if (tmin > 0 && tmax < std::numeric_limits<float>::infinity())
+        return n;
+    else
+        return glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 }
