@@ -13,16 +13,16 @@ SceneviewScene::SceneviewScene()
 
 SceneviewScene::~SceneviewScene()
 {
-    // ~Scene() will handle deleting m_shapes and m_lights
+    // ~Scene() will handle deleting m_elements and m_lights
 
     // delete textures
     QSet<GLuint> textureIDs;
     GLuint id;
-    int num_shapes = m_shapes.size();
+    int num_elements = m_elements.size();
 
     // iterate through materials
-    for (int i = 0; i < num_shapes; i++) {
-        CS123SceneMaterial& mat = m_shapes.at(i)->material;
+    for (int i = 0; i < num_elements; i++) {
+        CS123SceneMaterial& mat = m_elements.at(i)->primitive->material;
 
         // if the texture id was assigned
         if (mat.textureMap->isUsed) {
@@ -44,20 +44,20 @@ void SceneviewScene::init()
 {
     OpenGLScene::init();
 
-    int num_shapes = m_shapes.size();
+    int num_elements = m_elements.size();
 
     // adjust tessellation based on scene complexity
-    if (num_shapes <= 1)
+    if (num_elements <= 1)
         initShapes(100, 100, 20.f);
-    else if (num_shapes <= 50)
+    else if (num_elements <= 50)
         initShapes(70, 70, 20.f);
-    else if (num_shapes <= 100)
+    else if (num_elements <= 100)
         initShapes(50, 50, 20.f);
-    else if (num_shapes <= 200)
+    else if (num_elements <= 200)
         initShapes(25, 25, 20.f);
-    else if (num_shapes <= 1000)
+    else if (num_elements <= 1000)
         initShapes(15, 15, 20.f);
-    else if (num_shapes <= 10000)
+    else if (num_elements <= 10000)
         initShapes(7, 7, 20.f);
     else
         initShapes(4, 4, 20.f);
@@ -72,10 +72,10 @@ void SceneviewScene::init()
     QHash<QString, int> textures;
 
     // iterate through materials
-    for (int i = 0; i < num_shapes; i++)
+    for (int i = 0; i < num_elements; i++)
     {
 
-        CS123SceneMaterial& mat = m_shapes.at(i)->material;
+        CS123SceneMaterial& mat = m_elements.at(i)->primitive->material;
 
         // if there is a filename
         if (mat.textureMap->isUsed) {
@@ -125,34 +125,34 @@ void SceneviewScene::renderGeometry()
     if (!m_initialized)
         return;
 
-    int num_shapes = m_shapes.size();
+    int num_elements = m_elements.size();
     int i;
 
     // iterate through shapes
-    for (i = 0; i < num_shapes; i++) {
-        CS123ScenePrimitive *sp = m_shapes.at(i);
+    for (i = 0; i < num_elements; i++) {
+        SceneElement *element = m_elements.at(i);
 
-        applyMaterial(sp->material);
+        applyMaterial(element->primitive->material);
 
         // render shape based on corresponding transformation
-        switch (sp->type) {
+        switch (element->primitive->type) {
         case PRIMITIVE_CUBE:
-            m_cube->transformAndRender(m_shader, m_trans.at(i));
+            m_cube->transformAndRender(m_shader, element->trans);
             break;
         case PRIMITIVE_CONE:
-            m_cone->transformAndRender(m_shader, m_trans.at(i));
+            m_cone->transformAndRender(m_shader, element->trans);
             break;
         case PRIMITIVE_CYLINDER:
-            m_cylinder->transformAndRender(m_shader, m_trans.at(i));
+            m_cylinder->transformAndRender(m_shader, element->trans);
             break;
         case PRIMITIVE_SPHERE:
-            m_sphere->transformAndRender(m_shader, m_trans.at(i));
+            m_sphere->transformAndRender(m_shader, element->trans);
             break;
         case PRIMITIVE_TORUS:
-            m_torus->transformAndRender(m_shader, m_trans.at(i));
+            m_torus->transformAndRender(m_shader, element->trans);
             break;
         case PRIMITIVE_MESH:
-            m_sphere->transformAndRender(m_shader, m_trans.at(i));
+            m_sphere->transformAndRender(m_shader, element->trans);
             break;
         default:
             break;

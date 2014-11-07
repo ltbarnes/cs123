@@ -7,6 +7,11 @@
 class Camera;
 class CS123ISceneParser;
 
+struct SceneElement
+{
+    CS123ScenePrimitive *primitive;
+    glm::mat4 trans;
+};
 
 /**
  * @class Scene
@@ -30,7 +35,7 @@ public:
 
     virtual CS123SceneLightData *getLightData(int i);
 
-    virtual int getNumShapes();
+    virtual int getNumElements();
 
     virtual int getNumLights();
 
@@ -49,8 +54,9 @@ protected:
 
     CS123SceneGlobalData m_global;
     QList<CS123SceneLightData*> m_lights;
-    QList<CS123ScenePrimitive*> m_shapes;
-    QList<glm::mat4> m_trans;
+    QList<SceneElement *> m_elements;
+//    QList<CS123ScenePrimitive*> m_shapes;
+//    QList<glm::mat4> m_trans;
 
 private:
     void nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans);

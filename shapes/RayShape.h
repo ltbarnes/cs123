@@ -1,9 +1,9 @@
 #ifndef RAYSHAPE_H
 #define RAYSHAPE_H
 
-#include "OpenGLScene.h"
+#include "AABB.h"
 
-class RayShape
+class RayShape : public AABB
 {
 public:
     RayShape();
@@ -14,6 +14,9 @@ public:
 protected:
     virtual int findT(glm::vec4 p, glm::vec4 d, float* t1, float* t2);
     bool intersectsPlane(glm::vec3 point, glm::vec3 norm, glm::vec3 p, glm::vec3 d);
+
+private:
+    glm::vec3 m_minWorld, m_maxWorld;
 };
 
 #endif // RAYSHAPE_H

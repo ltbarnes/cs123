@@ -65,13 +65,18 @@ ShapesScene::ShapesScene()
                 settings.shapeParameter3
                 );
 
-    m_shapes.clear();
+//    m_shapes.clear();
     m_lights.clear();
-    m_trans.clear();
+//    m_trans.clear();
+    m_elements.clear();
 
-    m_shapes.append(prim);
+    SceneElement *element = new SceneElement();
+    element->primitive = prim;
+    element->trans = glm::mat4();
+//    m_shapes.append(prim);
     m_lights.append(light);
-    m_trans.append(glm::mat4());
+//    m_trans.append(glm::mat4());
+    m_elements.append(element);
 
 
     m_initialized = false;
@@ -118,7 +123,7 @@ void ShapesScene::init()
 
     this->setShape();
 
-    CS123SceneMaterial& mat = m_shapes.at(0)->material;
+    CS123SceneMaterial& mat = m_elements.at(0)->primitive->material;
     int texId = loadTexture(QString::fromStdString(mat.textureMap->filename));
     if (texId == -1) {
         cout << "Texture '" << mat.textureMap->filename << "' does not exist" << endl;
@@ -137,39 +142,39 @@ void ShapesScene::setShape()
     switch (settings.shapeType) {
     case SHAPE_CUBE:
         m_shape = m_cube;
-        m_shapes.at(0)->type = PRIMITIVE_CUBE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_CONE:
         m_shape = m_cone;
-        m_shapes.at(0)->type = PRIMITIVE_CONE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CONE;
         break;
     case SHAPE_SPHERE:
         m_shape = m_sphere;
-        m_shapes.at(0)->type = PRIMITIVE_SPHERE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_SPHERE;
         break;
     case SHAPE_CYLINDER:
         m_shape = m_cylinder;
-        m_shapes.at(0)->type = PRIMITIVE_CYLINDER;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CYLINDER;
         break;
     case SHAPE_TORUS:
         m_shape = m_torus;
-        m_shapes.at(0)->type = PRIMITIVE_TORUS;
+        m_elements.at(0)->primitive->type = PRIMITIVE_TORUS;
         break;
     case SHAPE_SPECIAL_1:
         m_shape = m_square;
-        m_shapes.at(0)->type = PRIMITIVE_CUBE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_SPECIAL_2:
         m_shape = m_ripplePlane;
-        m_shapes.at(0)->type = PRIMITIVE_CUBE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_SPECIAL_3:
         m_shape = m_rippleSphere;
-        m_shapes.at(0)->type = PRIMITIVE_CUBE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
         break;
     default: // basic square shape
         m_shape = m_square;
-        m_shapes.at(0)->type = PRIMITIVE_CUBE;
+        m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
         break;
     }
     if (m_shape) {
@@ -222,7 +227,7 @@ void ShapesScene::renderGeometry()
     if (!m_initialized)
         return;
 
-    applyMaterial(m_shapes.at(0)->material);
+    applyMaterial(m_elements.at(0)->primitive->material);
 
     // Draw the shape.
     if (m_shape)

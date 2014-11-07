@@ -6,7 +6,6 @@
 #include <QFile>
 #include <QGLWidget>
 
-
 Scene::Scene() //: m_camera(NULL)
 {
 }
@@ -17,15 +16,16 @@ Scene::~Scene()
 
     // delete primitives
     int i;
-    int num = m_shapes.size();
+    int num = m_elements.size();
     for (i = 0; i < num; i++)
     {
-        CS123ScenePrimitive *p = m_shapes.at(i);
-        delete p->material.bumpMap;
-        delete p->material.textureMap;
-        delete p;
+        SceneElement *e = m_elements.at(i);
+        delete e->primitive->material.bumpMap;
+        delete e->primitive->material.textureMap;
+        delete e->primitive;
+        delete e;
     }
-    m_shapes.clear();
+    m_elements.clear();
 
     // delete lights
     num = m_lights.size();
@@ -190,8 +190,10 @@ void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::m
     mat.shininess = material.shininess;
 
     // add primitive and transformation to lists
-    m_shapes.append(sp);
-    m_trans.append(matrix);
+    SceneElement *element = new SceneElement();
+    element->primitive = sp;
+    element->trans = matrix;
+    m_elements.append(element);
 }
 
 void Scene::addLight(const CS123SceneLightData &sceneLight)
@@ -277,9 +279,9 @@ int Scene::loadTexture(const QString &filename)
 }
 
 
-int Scene::getNumShapes()
+int Scene::getNumElements()
 {
-    return m_shapes.size();
+    return m_elements.size();
 }
 
 
@@ -297,23 +299,23 @@ CS123SceneGlobalData Scene::getGlobalData()
 
 CS123ScenePrimitive* Scene::getPrimitive(int i)
 {
-    if (i < 0 || i >= m_shapes.size())
+    if (i < 0 || i >= m_elements.size())
     {
         cout << "invalid light index %d" << endl;
         return NULL;
     }
-    return m_shapes[i];
+    return m_elements[i]->primitive;
 }
 
 
 glm::mat4 Scene::getMatrix(int i)
 {
-    if (i < 0 || i >= m_trans.size())
+    if (i < 0 || i >= m_elements.size())
     {
         cout << "invalid light index %d" << endl;
         return glm::mat4();
     }
-    return m_trans[i];
+    return m_elements[i]->trans;
 }
 
 

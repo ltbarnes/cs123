@@ -2,7 +2,7 @@
 #define RAYSCENE_H
 
 #include "Scene.h"
-#include "OpenGLScene.h"
+#include "kdtree/KDElement.h"
 #include "shapes/RayShape.h"
 
 class Canvas2D;
@@ -27,10 +27,7 @@ private:
     glm::vec3 rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
 
     QHash<PrimitiveType, RayShape*> m_primShapes;
-//    RayShape *m_cone;
-//    RayShape *m_cube;
-//    RayShape *m_cylinder;
-//    RayShape *m_sphere;
+    QList<KDElement *> m_kdelements;
 };
 
 #endif // RAYSCENE_H

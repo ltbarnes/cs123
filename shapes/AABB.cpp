@@ -26,6 +26,18 @@ void AABB::setMax(glm::vec3 max)
 }
 
 
+glm::vec3 AABB::getMin()
+{
+    return m_min;
+}
+
+
+glm::vec3 AABB::getMax()
+{
+    return m_max;
+}
+
+
 void AABB::calcSA()
 {
     glm::vec3 l = m_max - m_min;
@@ -41,7 +53,7 @@ float AABB::getSA()
 }
 
 
-bool AABB::intersects(glm::vec4 p, glm::vec4 d)
+bool AABB::intersectsAABB(glm::vec4 p, glm::vec4 d)
 {
     float tmin, tmax, tymin, tymax, txmin, txmax;
     glm::vec3 minMax[2] = {m_min, m_max};
