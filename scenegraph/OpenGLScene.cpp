@@ -38,7 +38,8 @@ OpenGLScene::~OpenGLScene()
         delete m_torus;
     }
 
-    delete m_normalRenderer;
+    if (m_normalRenderer)
+        delete m_normalRenderer;
 }
 
 

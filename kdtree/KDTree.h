@@ -13,6 +13,7 @@ public:
 
     KDNode *getRoot();
 
+    QList<KDElement *> getElements(KDNode *node);
     static void printTree(KDNode *node);
     static void printNode(KDNode *node);
 

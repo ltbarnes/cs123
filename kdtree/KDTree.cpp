@@ -27,6 +27,17 @@ void KDTree::deleteNode(KDNode *node) {
 }
 
 
+QList<KDElement *> KDTree::getElements(KDNode *node)
+{
+    QList<KDElement *> elements = node->getElements();
+    if (node->hasLeftChild())
+        elements.append(getElements(node->getLeftChild()));
+    if (node->hasRightChild())
+        elements.append(getElements(node->getRightChild()));
+    return elements;
+}
+
+
 KDNode *KDTree::getRoot()
 {
     return m_root;
@@ -57,7 +68,7 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
 {
 //    cout << "NODE: " << parent << ": " << depth << endl;
 //    cout << "elements: " << elements.size() << endl;
-    if (elements.size() <= 1) {
+    if (elements.size() <= 2) {
         parent->setElements(elements);
         parent->setLeftChild(NULL);
         parent->setRightChild(NULL);
@@ -70,8 +81,8 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     int n = elements.size();
     glm::vec3 leftMax, rightMin;
 
-    int maxIndex = 0; // included in right child list
-    int minIndex = n;
+    int leftShapes = 0; // included in right child list
+    int rightShapes = n;
 
     QList<KDElement *> mins = elements;
     QList<KDElement *> maxs = elements;
@@ -79,25 +90,27 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     qSort(mins.begin(), mins.end(), MinLessThan(dim));
     qSort(maxs.begin(), maxs.end(), MaxLessThan(dim));
 
-    calcCosts(dim, mins, maxs, parent, &minIndex, &maxIndex, &leftMax, &rightMin);
+    calcCosts(dim, mins, maxs, parent, &rightShapes, &leftShapes, &leftMax, &rightMin);
 
     KDNode *left = NULL;
     KDNode *right = NULL;
 //    cout << maxIndex << ", " << minIndex << endl;
-    if (maxIndex > 0) {
+    if (leftShapes) {
         left = new KDNode();
         left->setMin(parent->getMin());
         left->setMax(leftMax);
-        buildTree(depth + 1, mins.mid(0, maxIndex), left);
+        buildTree(depth + 1, mins.mid(0, leftShapes), left);
     }
-    if (minIndex < n) {
+    if (rightShapes) {
         right = new KDNode();
         right->setMin(rightMin);
         right->setMax(parent->getMax());
-        buildTree(depth + 1, maxs.mid((n - minIndex), minIndex), right);
+        buildTree(depth + 1, maxs.mid((n - rightShapes), rightShapes), right);
     }
     parent->setLeftChild(left);
     parent->setRightChild(right);
+//    cout << depth << endl;
+//    assert(depth == 500);
 }
 
 

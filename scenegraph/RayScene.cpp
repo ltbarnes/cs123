@@ -37,8 +37,8 @@ RayScene::~RayScene()
 
     // this references the same pointers and should be used
     // instead of m_kdes when the kdtree is functional
-    //
-    // delete m_tree
+
+     delete m_tree
 }
 
 
@@ -92,7 +92,10 @@ void RayScene::transferSceneData(Scene *scene)
     maximus += glm::vec3(1.f);
 
     // create new tree defined by the smallest and largest bounding points in the scene
+
     m_tree = new KDTree(m_kdes, miniest, maximus);
+
+    cout << m_tree->getElements(m_tree->getRoot()).size() << ", " << m_kdes.size() << endl;
 
 //    m_tree->printTree(m_tree->getRoot());
 }
@@ -161,8 +164,8 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
     glm::vec4 nt;
     RayShape *shape;
 
-    QList<KDElement *> kdes = m_kdes;
-//    QList<KDElement *> kdes = m_tree->getIntersections(p_eye, d_world);
+//    QList<KDElement *> kdes = m_kdes;
+    QList<KDElement *> kdes = m_tree->getIntersections(p_eye, d_world);
 
     // iterate through all necessary shapes and check for the shortest intersection distance
     int num_kdelements = kdes.size();
