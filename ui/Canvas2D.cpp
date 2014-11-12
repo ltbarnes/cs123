@@ -261,6 +261,9 @@ void Canvas2D::renderImage(Camera *camera, int width, int height)
 void Canvas2D::cancelRender()
 {
     // TODO: cancel the raytracer (optional)
+    if (m_scene) {
+        m_scene->stopRendering();
+    }
 }
 
 

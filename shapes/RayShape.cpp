@@ -2,6 +2,8 @@
 
 RayShape::RayShape()
 {
+    setMin(glm::vec3(-0.5));
+    setMax(glm::vec3(0.5));
 }
 
 
@@ -12,18 +14,12 @@ RayShape::~RayShape()
 
 glm::vec4 RayShape::intersects(glm::vec4 p, glm::vec4 d)
 {
-    return glm::vec4();
+    return glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 }
 
 
 int RayShape::findT(glm::vec4 p, glm::vec4 d, float *t1, float *t2)
 {
     return 0;
-}
-
-
-bool RayShape::intersectsPlane(glm::vec3 point, glm::vec3 norm, glm::vec3 p, glm::vec3 d)
-{
-    return false;
 }
 

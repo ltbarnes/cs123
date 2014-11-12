@@ -48,20 +48,37 @@ glm::mat4 KDElement::getTrans()
 }
 
 
-KDLessThan::KDLessThan(int dimension)
+MinLessThan::MinLessThan(int dimension)
     : m_dimension(dimension)
 {
 }
 
 
-KDLessThan::~KDLessThan()
+MinLessThan::~MinLessThan()
 {
 }
 
 
-bool KDLessThan::operator()(const KDElement *left, const KDElement *right) const
+bool MinLessThan::operator()(const KDElement *left, const KDElement *right) const
 {
-    return left->m_pos[m_dimension] < right->m_pos[m_dimension];
+    return left->m_min[m_dimension] < right->m_min[m_dimension];
+}
+
+
+MaxLessThan::MaxLessThan(int dimension)
+    : m_dimension(dimension)
+{
+}
+
+
+MaxLessThan::~MaxLessThan()
+{
+}
+
+
+bool MaxLessThan::operator()(const KDElement *left, const KDElement *right) const
+{
+    return left->m_max[m_dimension] < right->m_max[m_dimension];
 }
 
 

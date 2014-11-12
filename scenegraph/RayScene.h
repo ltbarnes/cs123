@@ -2,7 +2,7 @@
 #define RAYSCENE_H
 
 #include "Scene.h"
-#include "kdtree/KDElement.h"
+#include "kdtree/KDTree.h"
 #include "shapes/RayShape.h"
 
 class Canvas2D;
@@ -21,13 +21,18 @@ public:
     void transferSceneData(Scene *scene);
 
     void render(Canvas2D *canvas, Camera *camera, int width, int height);
+    void stopRendering();
 
 private:
 
-    glm::vec3 rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
+    glm::vec3 rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
 
     QHash<PrimitiveType, RayShape*> m_primShapes;
-    QList<KDElement *> m_kdelements;
+    QList<KDElement *> m_kdes;
+
+    KDTree *m_tree;
+
+    bool m_stopRendering;
 };
 
 #endif // RAYSCENE_H

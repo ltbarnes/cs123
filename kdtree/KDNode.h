@@ -5,15 +5,27 @@
 #include "KDTree.h"
 #include "shapes/AABB.h"
 
-class KDNode : private AABB
+class KDNode : public AABB
 {
 public:
     KDNode();
     virtual ~KDNode();
 
+    void setLeftChild(KDNode *left);
+    void setRightChild(KDNode *right);
+    bool hasLeftChild();
+    bool hasRightChild();
+    KDNode *getLeftChild();
+    KDNode *getRightChild();
+
+    void setElements(QList<KDElement *> elements);
+    QList<KDElement *> getElements();
+
+    void printElements();
+
 private:
-    KDNode *left;
-    KDNode *right;
+    KDNode *m_left;
+    KDNode *m_right;
     int m_depth;
     QList<KDElement *> m_elements;
 };

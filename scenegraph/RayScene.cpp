@@ -18,6 +18,8 @@ RayScene::RayScene()
     m_primShapes.insert(PRIMITIVE_CUBE, new RayCube());
     m_primShapes.insert(PRIMITIVE_CYLINDER, new RayCylinder());
     m_primShapes.insert(PRIMITIVE_SPHERE, new RaySphere());
+
+    m_tree = NULL;
 }
 
 RayScene::~RayScene()
@@ -27,11 +29,20 @@ RayScene::~RayScene()
     delete m_primShapes.value(PRIMITIVE_CYLINDER);
     delete m_primShapes.value(PRIMITIVE_SPHERE);
 
-    int num_kdelements = m_kdelements.size();
+    int num_kdelements = m_kdes.size();
     for (int i = 0; i < num_kdelements; i++) {
-        delete m_kdelements.at(i);
+        delete m_kdes.at(i);
     }
-    m_kdelements.clear();
+    m_kdes.clear();
+
+    // this or that ^ not both: referencing the same pointers
+    // delete m_tree
+}
+
+
+void RayScene::stopRendering()
+{
+    m_stopRendering = true;
 }
 
 
@@ -46,49 +57,51 @@ void RayScene::transferSceneData(Scene *scene)
     }
 
     SceneElement *e;
+    glm::vec3 miniest = glm::vec3(std::numeric_limits<float>::infinity());
+    glm::vec3 maximus = glm::vec3(-std::numeric_limits<float>::infinity());
+    glm::vec4 min = glm::vec4(1.f);
+    glm::vec4 max = glm::vec4(1.f);
+    glm::vec4 pos, minTemp, maxTemp;
+
     n = scene->getNumElements();
     for (i = 0; i < n; i++) {
         this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i), false);
         e = m_elements.at(i);
-        glm::vec4 min = e->trans * glm::vec4(glm::vec3(-0.5f), 1);
-        glm::vec4 max = e->trans * glm::vec4(glm::vec3(0.5f), 1);
         glm::vec4 pos = e->trans * glm::vec4(glm::vec3(0.f), 1);
-        m_kdelements.append(new KDElement(min, max, pos, e));
+        minTemp = e->trans * glm::vec4(glm::vec3(-0.5f), 1);
+        maxTemp = e->trans * glm::vec4(glm::vec3(0.5f), 1);
+
+        // in case there are rotations
+        min = glm::min(minTemp, maxTemp);
+        max = glm::max(minTemp, maxTemp);
+
+        m_kdes.append(new KDElement(min, max, pos, e));
+
+        miniest = glm::min(glm::vec3(min), miniest);
+        maximus = glm::max(glm::vec3(max), maximus);
     }
     m_elements.clear();
 
-    qSort(m_kdelements.begin(), m_kdelements.end(), KDLessThan(0));
-    cout << "X: " << endl;
-    for (i = 0; i < n; i++) {
-        cout << m_kdelements.at(i)->getPrimitive()->type << endl;
-    }
+    // buffer on the sides of the scene
+    miniest += glm::vec3(-1.f);
+    maximus += glm::vec3(1.f);
 
-    qSort(m_kdelements.begin(), m_kdelements.end(), KDLessThan(1));
-    cout << "Y: " << endl;
-    for (i = 0; i < n; i++) {
-        cout << m_kdelements.at(i)->getPrimitive()->type << endl;
-    }
+    m_tree = new KDTree(m_kdes, miniest, maximus);
 
-    qSort(m_kdelements.begin(), m_kdelements.end(), KDLessThan(2));
-    cout << "Z: " << endl;
-    for (i = 0; i < n; i++) {
-        cout << m_kdelements.at(i)->getPrimitive()->type << endl;
-    }
-
-
+//    m_tree->printTree(m_tree->getRoot());
 }
 
 
 void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 {
+    m_stopRendering = false;
+
     canvas->resize(width, height);
     BGRA* pix = canvas->data();
 
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
 
-    glm::vec3 color;
-    int ymax = height - 1;
-    int xmax = width - 1;
+    glm::vec3 color, tl, tr, bl, br;
 
     glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
 
@@ -97,20 +110,32 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
         i = y * width;
         for (int x = 0; x < width; x++) {
 
-            color = rayTrace(x, y, xmax, ymax, p_eye, M_ftw);
+            if (settings.useSuperSampling) {
+                tl = rayTrace(x + 0.0f, y + 0.0f, width, height, p_eye, M_ftw);
+                tr = rayTrace(x + 1.0f, y + 0.0f, width, height, p_eye, M_ftw);
+                bl = rayTrace(x + 0.0f, y + 1.0f, width, height, p_eye, M_ftw);
+                br = rayTrace(x + 1.0f, y + 1.0f, width, height, p_eye, M_ftw);
+                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
+                color = (tl + tr + bl + br + color) / 5.f;
+            } else {
+                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
+            }
             pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
             pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
             pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
 
             i++;
         }
-//        QCoreApplication::processEvents();
+        QCoreApplication::processEvents();
+        canvas->repaint();
+        if (m_stopRendering)
+            break;
     }
 
 }
 
 
-glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
+glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
     glm::vec4 farFilm = glm::vec4(x * 2.0 / xmax - 1.f, 1.f - y * 2.0 / ymax, -1.f, 1);
     glm::vec4 farWorld = M_ftw * farFilm;
@@ -123,14 +148,16 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
     glm::vec4 nt;
     RayShape *shape;
 
-    int num_kdelements = m_kdelements.size();
+//    QList<KDElement *> kdes = m_tree->getIntersections(p_eye, d_world);
+    QList<KDElement *> kdes = m_kdes;
+    int num_kdelements = kdes.size();
     for (int i = 0; i < num_kdelements; i++) {
 
-        M_inv = glm::inverse(m_kdelements.at(i)->getTrans());
+        M_inv = glm::inverse(kdes.at(i)->getTrans());
         p = M_inv * p_eye;
         d = M_inv * d_world;
 
-        shape = m_primShapes.value(m_kdelements.at(i)->getPrimitive()->type);
+        shape = m_primShapes.value(kdes.at(i)->getPrimitive()->type);
         if (shape) {
             nt = shape->intersects(p, d);
 
@@ -143,7 +170,7 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
     }
 
     if (bestT.w < std::numeric_limits<float>::infinity()) {
-        CS123ScenePrimitive *prim = m_kdelements.at(bestIndex)->getPrimitive();
+        CS123ScenePrimitive *prim = kdes.at(bestIndex)->getPrimitive();
         shape = m_primShapes.value(prim->type);
 
         glm::vec4 point = p_eye + bestT.w * d_world;
@@ -151,7 +178,7 @@ glm::vec3 RayScene::rayTrace(int x, int y, int xmax, int ymax, glm::vec4 p_eye, 
 
         glm::vec4 n = glm::vec4(glm::normalize(
                         glm::transpose(glm::inverse(
-                            glm::mat3(m_kdelements.at(bestIndex)->getTrans())))
+                            glm::mat3(kdes.at(bestIndex)->getTrans())))
                                     * glm::vec3(bestT)), 0);
 
         CS123SceneLightData *light;

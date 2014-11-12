@@ -12,10 +12,14 @@ RaySphere::~RaySphere()
 
 glm::vec4 RaySphere::intersects(glm::vec4 p, glm::vec4 d)
 {
+    glm::vec4 n = glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
+
+    if (!this->intersectsAABB(p, d))
+        return n;
+
     float t1 = std::numeric_limits<float>::infinity();
     float t2 = std::numeric_limits<float>::infinity();
     glm::vec4 v;
-    glm::vec4 n = glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 
     int tees = findT(p, d, &t1, &t2);
 
