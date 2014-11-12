@@ -1,37 +1,25 @@
-Project: Sceneview
+Project: Intersect
 Student: Logan Barnes (ltbarnes)
 
 
 DESIGN
 
-	Shape Class:
-		The Shape class was updated to store and render texture data. The function transformAndRender() was also added to render shapes in arbitrary locations based on a transformation matrix.
+	RayShapes:
+		A new class RayShape was created to accommodate intersection mathematics without dragging along all the unnecessary OpenGL functions. The base class for all RayShapes is an axis-aligned bounding box (class AABB) of unit length centered at the origin. All shapes check for intersection with this box before attempting to find an intersection point on the main shape (except cube obviously).
+		
 
-	Scene Class:
-		The Scene class creates copies of CS123ScenePrimitive and CS123SceneLightData structs and stores them in lists for the Sceneview class to call upon. When the parse() function is called the appropriate transformations for each CS123ScenePrimitive is calculated and stored in a list with a corresponding index.
-
-
-	SceneviewScene Class:
-
-		Shapes:
-			One instance of each of the Cone, Cube, Cylinder, Sphere, and Torus shapes are stored as instance variables. When the scene is drawn the render method iterates through each of the CS123ScenePrimitives and renders the correct instance variable shape with the corresponding transformation matrix.
-
-		Tessellation:
-			When the scene is initialized the tessellation of the shapes are set based on the number of objects in the scene. The vertices and uv coordinates are then calculated for each shape and bound to the vertex array and buffer.
-
-		Textures Loading:
-			The textures are also loaded when the SceneviewScene is initialized by iterating through the CS123ScenePrimitives and getting the material texture filename. A QMap is used to temporarily store texture ids once they are loaded so multiple shapes with the same files can get the appropriate gl id.
+	RayScene Class:
+		The SceneviewScene, ShapeScene, and RayScene classes are sub classes of Scene which maintains the lists of scene objects and lights. This allows one scene to retrieve data from other scene regardless of the scene type. This is used to transfer data from either the SceneviewScene or the ShapeScene in the 3D canvas to the RayScene before rendering an image to the 2D canvas.
 
 
-ADDITIONAL NOTES:
-	
-	ShapeScene Class:
-		ShapeScene now loads a single texture when initialized to make texture debugging easier (and to make the shapes look cool).
+	KDTree:
+		Work in progress. Hopefully it will be functional for Ray. Likely to see some remnants floating around the project.
 
-	Torus Texture:
-		The texture mapping for the torus differs from the demo so the "seam" is on the inside of the ring. There aren't a lot of torus scenes (if any) so it doesn't affect many scenes but it seems like a more intuitive way to do it.
+
+	Super Sampling:
+		When super sampling is selected samples are taken from each corner of the pixel in addition to the middle point then averaged together.
 
 
 BUGS
 
-	Don't know of any yet.
+	KDTree fails pretty hard when it's used on scenes with more than one shape.

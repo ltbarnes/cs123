@@ -35,7 +35,9 @@ RayScene::~RayScene()
     }
     m_kdes.clear();
 
-    // this or that ^ not both: referencing the same pointers
+    // this references the same pointers and should be used
+    // instead of m_kdes when the kdtree is functional
+    //
     // delete m_tree
 }
 
@@ -48,14 +50,17 @@ void RayScene::stopRendering()
 
 void RayScene::transferSceneData(Scene *scene)
 {
+    // transfer global data
     this->setGlobal(scene->getGlobalData());
 
+    // transfer light data
     int i;
     int n = scene->getNumLights();
     for (i = 0; i < n; i++) {
         this->addLight(*(scene->getLightData(i)));
     }
 
+    // transfer object data and create kdelements based on each object's world location
     SceneElement *e;
     glm::vec3 miniest = glm::vec3(std::numeric_limits<float>::infinity());
     glm::vec3 maximus = glm::vec3(-std::numeric_limits<float>::infinity());
@@ -67,8 +72,8 @@ void RayScene::transferSceneData(Scene *scene)
     for (i = 0; i < n; i++) {
         this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i), false);
         e = m_elements.at(i);
-        glm::vec4 pos = e->trans * glm::vec4(glm::vec3(0.f), 1);
-        minTemp = e->trans * glm::vec4(glm::vec3(-0.5f), 1);
+        pos = e->trans * glm::vec4(glm::vec3(0.f), 1); // world space pos
+        minTemp = e->trans * glm::vec4(glm::vec3(-0.5f), 1); // world space bounding box
         maxTemp = e->trans * glm::vec4(glm::vec3(0.5f), 1);
 
         // in case there are rotations
@@ -86,6 +91,7 @@ void RayScene::transferSceneData(Scene *scene)
     miniest += glm::vec3(-1.f);
     maximus += glm::vec3(1.f);
 
+    // create new tree defined by the smallest and largest bounding points in the scene
     m_tree = new KDTree(m_kdes, miniest, maximus);
 
 //    m_tree->printTree(m_tree->getRoot());
@@ -96,20 +102,24 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 {
     m_stopRendering = false;
 
+    // reset the canvas size and get the pixel array
     canvas->resize(width, height);
     BGRA* pix = canvas->data();
 
+    // get the film to world matrix and eye point
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
 
     glm::vec3 color, tl, tr, bl, br;
 
     glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
 
+    // iterate through all pixels
     int i;
     for (int y = 0; y < height; y++) {
         i = y * width;
         for (int x = 0; x < width; x++) {
 
+            // sample each corner of the pixel and the center then average
             if (settings.useSuperSampling) {
                 tl = rayTrace(x + 0.0f, y + 0.0f, width, height, p_eye, M_ftw);
                 tr = rayTrace(x + 1.0f, y + 0.0f, width, height, p_eye, M_ftw);
@@ -117,7 +127,8 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
                 br = rayTrace(x + 1.0f, y + 1.0f, width, height, p_eye, M_ftw);
                 color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
                 color = (tl + tr + bl + br + color) / 5.f;
-            } else {
+
+            } else { // sample the center point of the pixel
                 color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
             }
             pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
@@ -126,8 +137,9 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
             i++;
         }
-        QCoreApplication::processEvents();
+        // repaint and check the gui
         canvas->repaint();
+        QCoreApplication::processEvents();
         if (m_stopRendering)
             break;
     }
@@ -137,6 +149,7 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
 glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
+    // set the film and world vectors
     glm::vec4 farFilm = glm::vec4(x * 2.0 / xmax - 1.f, 1.f - y * 2.0 / ymax, -1.f, 1);
     glm::vec4 farWorld = M_ftw * farFilm;
     glm::vec4 d_world = glm::normalize(farWorld - p_eye);
@@ -148,15 +161,19 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
     glm::vec4 nt;
     RayShape *shape;
 
-//    QList<KDElement *> kdes = m_tree->getIntersections(p_eye, d_world);
     QList<KDElement *> kdes = m_kdes;
+//    QList<KDElement *> kdes = m_tree->getIntersections(p_eye, d_world);
+
+    // iterate through all necessary shapes and check for the shortest intersection distance
     int num_kdelements = kdes.size();
     for (int i = 0; i < num_kdelements; i++) {
 
+        // get p and d in object space
         M_inv = glm::inverse(kdes.at(i)->getTrans());
         p = M_inv * p_eye;
         d = M_inv * d_world;
 
+        // check for intersections in shape space
         shape = m_primShapes.value(kdes.at(i)->getPrimitive()->type);
         if (shape) {
             nt = shape->intersects(p, d);
@@ -169,6 +186,7 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
         }
     }
 
+    // if an intersection occurred calculate the lighting based on the intersection point and normal
     if (bestT.w < std::numeric_limits<float>::infinity()) {
         CS123ScenePrimitive *prim = kdes.at(bestIndex)->getPrimitive();
         shape = m_primShapes.value(prim->type);
@@ -181,44 +199,58 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
                             glm::mat3(kdes.at(bestIndex)->getTrans())))
                                     * glm::vec3(bestT)), 0);
 
-        CS123SceneLightData *light;
-        CS123SceneMaterial &mat = prim->material;
-
-        int num_lights = m_lights.size();
-
-        glm::vec3 color = glm::vec3();
-        glm::vec3 amb = glm::vec3(mat.cAmbient.r, mat.cAmbient.g, mat.cAmbient.b);
-        glm::vec3 diff = glm::vec3(mat.cDiffuse.r, mat.cDiffuse.g, mat.cDiffuse.b);
-
-        glm::vec3 coeff;
-        glm::vec4 pToL;
-        float nDotL;
-
-        for (int i = 0; i < num_lights; i++) {
-            light = m_lights.at(i);
-
-            if (light->type == LIGHT_POINT)
-                pToL = glm::normalize(light->pos - point);
-            else if (light->type == LIGHT_DIRECTIONAL)
-                pToL = -glm::normalize(light->dir);
-
-            nDotL = std::max(0.f, glm::dot(n, pToL));
-
-            coeff.r = diff.r * nDotL;
-            coeff.g = diff.g * nDotL;
-            coeff.b = diff.b * nDotL;
-
-            color.r += light->color.r * coeff.r;
-            color.g += light->color.g * coeff.g;
-            color.b += light->color.b * coeff.b;
-        }
-        color.r = std::min(1.f, color.r + amb.r);
-        color.g = std::min(1.f, color.g + amb.g);
-        color.b = std::min(1.f, color.b + amb.b);
-        return color;
+        return calcColor(prim, point, n);
     }
 
     return glm::vec3();
+}
+
+
+glm::vec3 RayScene::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n)
+{
+    CS123SceneLightData *light;
+    CS123SceneMaterial &mat = prim->material;
+
+    int num_lights = m_lights.size();
+
+    // variables for the lighting equation
+    glm::vec3 color = glm::vec3();
+    glm::vec3 amb = glm::vec3(mat.cAmbient.r, mat.cAmbient.g, mat.cAmbient.b);
+    glm::vec3 diff = glm::vec3(mat.cDiffuse.r, mat.cDiffuse.g, mat.cDiffuse.b);
+
+    glm::vec3 coeff;
+    glm::vec4 pToL;
+    float nDotL;
+
+    // sum from the lighting equation
+    for (int i = 0; i < num_lights; i++) {
+        light = m_lights.at(i);
+
+        // light direction vector
+        if (light->type == LIGHT_POINT)
+            pToL = glm::normalize(light->pos - point);
+        else if (light->type == LIGHT_DIRECTIONAL)
+            pToL = -glm::normalize(light->dir);
+
+        // dot product of normal and light vector
+        nDotL = std::max(0.f, glm::dot(n, pToL));
+
+        // diffuse coefficient times dot product
+        coeff.r = diff.r * nDotL;
+        coeff.g = diff.g * nDotL;
+        coeff.b = diff.b * nDotL;
+
+        // color of the light
+        color.r += light->color.r * coeff.r;
+        color.g += light->color.g * coeff.g;
+        color.b += light->color.b * coeff.b;
+    }
+    // add the ambient lighting
+    color.r = std::min(1.f, color.r + amb.r);
+    color.g = std::min(1.f, color.g + amb.g);
+    color.b = std::min(1.f, color.b + amb.b);
+
+    return color;
 }
 
 
