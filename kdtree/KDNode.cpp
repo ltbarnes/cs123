@@ -7,6 +7,7 @@ KDNode::KDNode()
 
 KDNode::~KDNode()
 {
+    // TODO: delete elements
 }
 
 

@@ -14,6 +14,7 @@ glm::vec4 RaySphere::intersects(glm::vec4 p, glm::vec4 d)
 {
     glm::vec4 n = glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 
+    // check for bounding box intersection
     if (!this->intersectsAABB(p, d))
         return n;
 
@@ -21,6 +22,7 @@ glm::vec4 RaySphere::intersects(glm::vec4 p, glm::vec4 d)
     float t2 = std::numeric_limits<float>::infinity();
     glm::vec4 v;
 
+    // tees will only be 0, 1, or 2 (number of intersections)
     int tees = findT(p, d, &t1, &t2);
 
     if (tees) {

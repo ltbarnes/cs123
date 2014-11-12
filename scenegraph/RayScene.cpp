@@ -37,8 +37,7 @@ RayScene::~RayScene()
 
     // this references the same pointers and should be used
     // instead of m_kdes when the kdtree is functional
-    //
-    // delete m_tree
+     delete m_tree;
 }
 
 
@@ -108,10 +107,9 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
     // get the film to world matrix and eye point
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
+    glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
 
     glm::vec3 color, tl, tr, bl, br;
-
-    glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
 
     // iterate through all pixels
     int i;
