@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "kdtree/KDTree.h"
 #include "shapes/RayShape.h"
+#include <QHash>
 
 class Canvas2D;
 
