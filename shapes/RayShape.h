@@ -15,11 +15,9 @@ public:
      * of the returned vector is the surface normal at the intersection point
      * and the 'w' value is the distance from p to the intersection point.
      */
-    virtual glm::vec4 intersects(glm::vec4 p, glm::vec4 d);
+    virtual glm::vec4 intersects(glm::vec4 p, glm::vec4 d) = 0;
 
-protected:
-    // finds the minimum distance from p to an intersection point on the shape
-    virtual int findT(glm::vec4 p, glm::vec4 d, float* t1, float* t2);
+    void getBounds(glm::vec3 *min, glm::vec3 *max, glm::mat4 trans);
 };
 
 #endif // RAYSHAPE_H

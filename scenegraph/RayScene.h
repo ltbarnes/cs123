@@ -5,6 +5,7 @@
 #include "kdtree/KDTree.h"
 #include "shapes/RayShape.h"
 #include <QHash>
+#include <QRunnable>
 
 class Canvas2D;
 
@@ -16,6 +17,7 @@ class Canvas2D;
 class RayScene : public Scene
 {
 public:
+    friend class RayTask;
     RayScene();
     virtual ~RayScene();
 
@@ -30,13 +32,13 @@ public:
     // stops the rendering after the current canvas pixel row is finished.
     void stopRendering();
 
-private:
+protected:
 
     // performs a ray tracing algorithm at the specified point.
-    glm::vec3 rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
+//    glm::vec3 rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
 
     // calculates the color of a point based on the lighting and materials of the shape
-    glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
+//    glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
 
     // maps shape types to actual shape instances so multiple shapes of the same type aren't stored
     QHash<PrimitiveType, RayShape*> m_primShapes;
@@ -47,6 +49,30 @@ private:
 
     // flag to prevent further rendering
     bool m_stopRendering;
+};
+
+
+class RayTask : public QRunnable
+{
+public:
+    RayTask(RayScene *scene, Canvas2D *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw);
+    virtual ~RayTask();
+
+    void run();
+
+private:
+    // performs a ray tracing algorithm at the specified point.
+    glm::vec3 rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
+
+    // calculates the color of a point based on the lighting and materials of the shape
+    glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
+
+    RayScene *m_scene;
+    Canvas2D *m_canvas;
+    int m_x, m_y;
+    float m_width, m_height;
+    glm::vec4 m_p_eye;
+    glm::mat4 m_M_ftw;
 };
 
 #endif // RAYSCENE_H

@@ -10,6 +10,7 @@
 #include "shapes/RaySphere.h"
 #include "kdtree/KDTree.h"
 #include <qcoreapplication.h>
+#include <QThreadPool>
 
 
 RayScene::RayScene()
@@ -75,32 +76,21 @@ void RayScene::transferSceneData(Scene *scene)
     SceneElement *e;
     glm::vec3 miniest = glm::vec3(std::numeric_limits<float>::infinity());
     glm::vec3 maximus = glm::vec3(-std::numeric_limits<float>::infinity());
-    glm::vec4 min = glm::vec4(1.f);
-    glm::vec4 max = glm::vec4(1.f);
-    glm::vec4 pos, blb, blf, brb, brf, tlb, tlf, trb, trf;
+    glm::vec3 min = glm::vec3(1.f);
+    glm::vec3 max = glm::vec3(1.f);
+    glm::vec4 pos;
 
     n = scene->getNumElements();
     for (i = 0; i < n; i++) {
         this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i), false);
         e = m_elements.at(i);
-        pos = e->trans * glm::vec4(glm::vec3(0.f), 1); // world space pos
-        blb = e->trans * glm::vec4(glm::vec3(-0.5f, -0.5f, -0.5f), 1); // world space bounding box
-        blf = e->trans * glm::vec4(glm::vec3(-0.5f, -0.5f,  0.5f), 1);
-        brb = e->trans * glm::vec4(glm::vec3( 0.5f, -0.5f, -0.5f), 1);
-        brf = e->trans * glm::vec4(glm::vec3( 0.5f, -0.5f,  0.5f), 1);
-        tlb = e->trans * glm::vec4(glm::vec3(-0.5f,  0.5f, -0.5f), 1);
-        tlf = e->trans * glm::vec4(glm::vec3(-0.5f,  0.5f,  0.5f), 1);
-        trb = e->trans * glm::vec4(glm::vec3( 0.5f,  0.5f, -0.5f), 1);
-        trf = e->trans * glm::vec4(glm::vec3( 0.5f,  0.5f,  0.5f), 1);
 
-        // in case there are rotations
-        min = glm::min(blb, glm::min(blf, glm::min(brb, glm::min(brf, glm::min(tlb, glm::min(tlf, glm::min(trb, trf)))))));
-        max = glm::max(blb, glm::max(blf, glm::max(brb, glm::max(brf, glm::max(tlb, glm::max(tlf, glm::max(trb, trf)))))));
+        m_primShapes.value(e->primitive->type)->getBounds(&min, &max, e->trans);
 
         m_kdes.append(new KDElement(min, max, pos, e));
 
-        miniest = glm::min(glm::vec3(min), miniest);
-        maximus = glm::max(glm::vec3(max), maximus);
+        miniest = glm::min(max, miniest);
+        maximus = glm::max(min, maximus);
     }
     m_elements.clear();
 
@@ -125,49 +115,105 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
     // reset the canvas size and get the pixel array
     canvas->resize(width, height);
-    BGRA* pix = canvas->data();
+//    BGRA* pix = canvas->data();
 
     // get the film to world matrix and eye point
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
     glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
 
-    glm::vec3 color, tl, tr, bl, br;
+//    glm::vec3 color, tl, tr, bl, br;
 
     // iterate through all pixels
-    int i;
+//    int i;
     for (int y = 0; y < height; y++) {
-        i = y * width;
-        for (int x = 0; x < width; x++) {
+//        i = y * width;
+//        for (int x = 0; x < width; x++) {
 
-            // sample each corner of the pixel and the center then average
-            if (settings.useSuperSampling) {
-                tl = rayTrace(x + 0.0f, y + 0.0f, width, height, p_eye, M_ftw);
-                tr = rayTrace(x + 1.0f, y + 0.0f, width, height, p_eye, M_ftw);
-                bl = rayTrace(x + 0.0f, y + 1.0f, width, height, p_eye, M_ftw);
-                br = rayTrace(x + 1.0f, y + 1.0f, width, height, p_eye, M_ftw);
-                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
-                color = (tl + tr + bl + br + color) / 5.f;
+//            // sample each corner of the pixel and the center then average
+//            if (settings.useSuperSampling) {
+//                tl = rayTrace(x + 0.0f, y + 0.0f, width, height, p_eye, M_ftw);
+//                tr = rayTrace(x + 1.0f, y + 0.0f, width, height, p_eye, M_ftw);
+//                bl = rayTrace(x + 0.0f, y + 1.0f, width, height, p_eye, M_ftw);
+//                br = rayTrace(x + 1.0f, y + 1.0f, width, height, p_eye, M_ftw);
+//                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
+//                color = (tl + tr + bl + br + color) / 5.f;
 
-            } else { // sample the center point of the pixel
-                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
-            }
-            pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
-            pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
-            pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
+//            } else { // sample the center point of the pixel
+//                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
+//            }
+//            pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
+//            pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
+//            pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
 
-            i++;
-        }
+            RayTask *runnable = new RayTask(this, canvas, y, width, height, p_eye, M_ftw);
+            QThreadPool::globalInstance()->start(runnable);
+
+//            i++;
+//        }
         // repaint and check the gui
-        canvas->repaint();
-        QCoreApplication::processEvents();
-        if (m_stopRendering)
-            break;
+//        canvas->repaint();
     }
+    QThreadPool::globalInstance()->waitForDone();
+    canvas->repaint();
 
 }
 
 
-glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
+RayTask::RayTask(RayScene *scene, Canvas2D *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw)
+{
+    m_scene = scene;
+    m_canvas = canvas;
+    m_x = 0.f;
+    m_y = row;
+    m_width = width;
+    m_height = height;
+    m_p_eye = p_eye;
+    m_M_ftw = M_ftw;
+}
+
+
+RayTask::~RayTask()
+{
+}
+
+
+void RayTask::run()
+{
+    glm::vec3 color, tl, tr, bl, br;
+
+    BGRA *pix = m_canvas->data();
+
+    int i = m_y * m_width;
+    for (int x = 0; x < m_width; x++) {
+
+        if (m_scene->m_stopRendering)
+            break;
+
+        // sample each corner of the pixel and the center then average
+        if (settings.useSuperSampling) {
+            tl = rayTrace(x + 0.0f, m_y + 0.0f, m_width, m_height, m_p_eye, m_M_ftw);
+            tr = rayTrace(x + 1.0f, m_y + 0.0f, m_width, m_height, m_p_eye, m_M_ftw);
+            bl = rayTrace(x + 0.0f, m_y + 1.0f, m_width, m_height, m_p_eye, m_M_ftw);
+            br = rayTrace(x + 1.0f, m_y + 1.0f, m_width, m_height, m_p_eye, m_M_ftw);
+            color = rayTrace(x + 0.5f, m_y + 0.5f, m_width, m_height, m_p_eye, m_M_ftw);
+            color = (tl + tr + bl + br + color) / 5.f;
+
+        } else { // sample the center point of the pixel
+            color = rayTrace(x + 0.5f, m_y + 0.5f, m_width, m_height, m_p_eye, m_M_ftw);
+        }
+        pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
+        pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
+        pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
+
+        i++;
+        QCoreApplication::processEvents();
+    }
+//    m_canvas->repaint();
+//    QCoreApplication::processEvents();
+}
+
+
+glm::vec3 RayTask::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
     // set the film and world vectors
     glm::vec4 farFilm = glm::vec4(x * 2.0 / xmax - 1.f, 1.f - y * 2.0 / ymax, -1.f, 1);
@@ -182,7 +228,7 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
     RayShape *shape;
 
 //    QList<KDElement *> kdes = m_kdes;
-    QList<KDElement *> kdes = m_tree->getIntersections(p_eye, d_world);
+    QList<KDElement *> kdes = m_scene->m_tree->getIntersections(p_eye, d_world);
 
     // iterate through all necessary shapes and check for the shortest intersection distance
     int num_kdelements = kdes.size();
@@ -194,7 +240,7 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
         d = M_inv * d_world;
 
         // check for intersections in shape space
-        shape = m_primShapes.value(kdes.at(i)->getPrimitive()->type);
+        shape = m_scene->m_primShapes.value(kdes.at(i)->getPrimitive()->type);
         if (shape) {
             nt = shape->intersects(p, d);
 
@@ -209,7 +255,7 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
     // if an intersection occurred calculate the lighting based on the intersection point and normal
     if (bestT.w < std::numeric_limits<float>::infinity()) {
         CS123ScenePrimitive *prim = kdes.at(bestIndex)->getPrimitive();
-        shape = m_primShapes.value(prim->type);
+        shape = m_scene->m_primShapes.value(prim->type);
 
         glm::vec4 point = p_eye + bestT.w * d_world;
 
@@ -226,12 +272,12 @@ glm::vec3 RayScene::rayTrace(float x, float y, float xmax, float ymax, glm::vec4
 }
 
 
-glm::vec3 RayScene::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n)
+glm::vec3 RayTask::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n)
 {
     CS123SceneLightData *light;
     CS123SceneMaterial &mat = prim->material;
 
-    int num_lights = m_lights.size();
+    int num_lights = m_scene->m_lights.size();
 
     // variables for the lighting equation
     glm::vec3 color = glm::vec3();
@@ -244,7 +290,7 @@ glm::vec3 RayScene::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::v
 
     // sum from the lighting equation
     for (int i = 0; i < num_lights; i++) {
-        light = m_lights.at(i);
+        light = m_scene->m_lights.at(i);
 
         // light direction vector
         if (light->type == LIGHT_POINT)
