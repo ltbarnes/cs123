@@ -9,6 +9,13 @@
 
 class Canvas2D;
 
+//struct ImageBlock {
+//    BGRA *pixels;
+//    int x, y;
+//    int blockWidth, blockHeight;
+//    int fullWidth, fullHeight;
+//};
+
 /**
  * @class RayScene
  *
@@ -55,7 +62,7 @@ protected:
 class RayTask : public QRunnable
 {
 public:
-    RayTask(RayScene *scene, Canvas2D *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw);
+    RayTask(RayScene *scene, BGRA *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw);
     virtual ~RayTask();
 
     void run();
@@ -68,7 +75,7 @@ private:
     glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
 
     RayScene *m_scene;
-    Canvas2D *m_canvas;
+    BGRA *m_canvas;
     int m_x, m_y;
     float m_width, m_height;
     glm::vec4 m_p_eye;

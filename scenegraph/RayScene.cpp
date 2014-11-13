@@ -89,8 +89,8 @@ void RayScene::transferSceneData(Scene *scene)
 
         m_kdes.append(new KDElement(min, max, pos, e));
 
-        miniest = glm::min(max, miniest);
-        maximus = glm::max(min, maximus);
+        miniest = glm::min(min, miniest);
+        maximus = glm::max(max, maximus);
     }
     m_elements.clear();
 
@@ -115,7 +115,8 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
     // reset the canvas size and get the pixel array
     canvas->resize(width, height);
-//    BGRA* pix = canvas->data();
+    BGRA* pix = canvas->data();
+
 
     // get the film to world matrix and eye point
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
@@ -145,8 +146,11 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 //            pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
 //            pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
 
-            RayTask *runnable = new RayTask(this, canvas, y, width, height, p_eye, M_ftw);
+            RayTask *runnable = new RayTask(this, pix, y, width, height, p_eye, M_ftw);
             QThreadPool::globalInstance()->start(runnable);
+//            QThreadPool::globalInstance()->waitForDone();
+//            canvas->repaint();
+//                QCoreApplication::processEvents();
 
 //            i++;
 //        }
@@ -156,10 +160,11 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
     QThreadPool::globalInstance()->waitForDone();
     canvas->repaint();
 
+    cout << "width: " << width << endl;
 }
 
 
-RayTask::RayTask(RayScene *scene, Canvas2D *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw)
+RayTask::RayTask(RayScene *scene, BGRA *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
     m_scene = scene;
     m_canvas = canvas;
@@ -181,10 +186,9 @@ void RayTask::run()
 {
     glm::vec3 color, tl, tr, bl, br;
 
-    BGRA *pix = m_canvas->data();
-
     int i = m_y * m_width;
-    for (int x = 0; x < m_width; x++) {
+    int x;
+    for (x = 0; x < m_width; x++) {
 
         if (m_scene->m_stopRendering)
             break;
@@ -201,13 +205,15 @@ void RayTask::run()
         } else { // sample the center point of the pixel
             color = rayTrace(x + 0.5f, m_y + 0.5f, m_width, m_height, m_p_eye, m_M_ftw);
         }
-        pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
-        pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
-        pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
+
+        m_canvas[i].r = (unsigned char)(color.r * 255.f + 0.5f);
+        m_canvas[i].g = (unsigned char)(color.g * 255.f + 0.5f);
+        m_canvas[i].b = (unsigned char)(color.b * 255.f + 0.5f);
 
         i++;
-        QCoreApplication::processEvents();
+//        QCoreApplication::processEvents();
     }
+//    cout << x << endl;
 //    m_canvas->repaint();
 //    QCoreApplication::processEvents();
 }
