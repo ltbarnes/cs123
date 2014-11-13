@@ -412,16 +412,20 @@ void MainWindow::renderImage()
     ui->tabWidget->setCurrentIndex(TAB_3D);
     m_canvas3D->update();
     QApplication::processEvents();
+    QApplication::processEvents();
 
     ui->tabWidget->setCurrentIndex(TAB_2D);
+    if (!m_canvas3D->isInitialized()) {
+        cout << "OpenGL not initialized!" << endl;
+        return;
+    }
 
     OpenGLScene *glScene = m_canvas3D->getScene();
     if (glScene != NULL)
     {
         // TODO: Set up RayScene from glScene and call ui->canvas2D->setScene()
         RayScene *rayScene = new RayScene();
-        if (!glScene->isInit())
-            glScene->init();
+
         rayScene->transferSceneData(glScene);
         ui->canvas2D->setScene(rayScene);
 

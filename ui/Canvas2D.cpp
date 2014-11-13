@@ -240,7 +240,8 @@ void Canvas2D::filterImage()
 
 void Canvas2D::setScene(RayScene *scene)
 {
-    delete m_scene;
+    if (m_scene)
+        delete m_scene;
     m_scene = scene;
 }
 
