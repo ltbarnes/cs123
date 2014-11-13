@@ -6,6 +6,7 @@
 class KDElement
 {
 public:
+    friend class KDLessThan;
     friend class MinLessThan;
     friend class MaxLessThan;
     KDElement(glm::vec4 min, glm::vec4 max, glm::vec4 pos, SceneElement *element);
@@ -22,6 +23,18 @@ protected:
     glm::vec4 m_max;
     glm::vec4 m_pos;
     SceneElement *m_element;
+};
+
+
+class KDLessThan
+{
+public:
+    KDLessThan(int dimension);
+    virtual ~KDLessThan();
+    bool operator()(const KDElement *left, const KDElement *right) const;
+
+private:
+    int m_dimension;
 };
 
 

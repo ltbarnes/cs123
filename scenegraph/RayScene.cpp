@@ -35,10 +35,10 @@ RayScene::~RayScene()
     }
     m_kdes.clear();
 
-    // this references the same pointers and should be used
-    // instead of m_kdes when the kdtree is functional
+    // need both because m_tree stores repeat elements if they
+    // overlap an AABB
 
-     delete m_tree
+     delete m_tree;
 }
 
 
@@ -50,6 +50,17 @@ void RayScene::stopRendering()
 
 void RayScene::transferSceneData(Scene *scene)
 {
+    // delete old list and tree;
+    int num_kdelements = m_kdes.size();
+    for (int i = 0; i < num_kdelements; i++) {
+        delete m_kdes.at(i);
+    }
+    m_kdes.clear();
+    if (m_tree) {
+        delete m_tree;
+        m_tree = NULL;
+    }
+
     // transfer global data
     this->setGlobal(scene->getGlobalData());
 
@@ -66,19 +77,25 @@ void RayScene::transferSceneData(Scene *scene)
     glm::vec3 maximus = glm::vec3(-std::numeric_limits<float>::infinity());
     glm::vec4 min = glm::vec4(1.f);
     glm::vec4 max = glm::vec4(1.f);
-    glm::vec4 pos, minTemp, maxTemp;
+    glm::vec4 pos, blb, blf, brb, brf, tlb, tlf, trb, trf;
 
     n = scene->getNumElements();
     for (i = 0; i < n; i++) {
         this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i), false);
         e = m_elements.at(i);
         pos = e->trans * glm::vec4(glm::vec3(0.f), 1); // world space pos
-        minTemp = e->trans * glm::vec4(glm::vec3(-0.5f), 1); // world space bounding box
-        maxTemp = e->trans * glm::vec4(glm::vec3(0.5f), 1);
+        blb = e->trans * glm::vec4(glm::vec3(-0.5f, -0.5f, -0.5f), 1); // world space bounding box
+        blf = e->trans * glm::vec4(glm::vec3(-0.5f, -0.5f,  0.5f), 1);
+        brb = e->trans * glm::vec4(glm::vec3( 0.5f, -0.5f, -0.5f), 1);
+        brf = e->trans * glm::vec4(glm::vec3( 0.5f, -0.5f,  0.5f), 1);
+        tlb = e->trans * glm::vec4(glm::vec3(-0.5f,  0.5f, -0.5f), 1);
+        tlf = e->trans * glm::vec4(glm::vec3(-0.5f,  0.5f,  0.5f), 1);
+        trb = e->trans * glm::vec4(glm::vec3( 0.5f,  0.5f, -0.5f), 1);
+        trf = e->trans * glm::vec4(glm::vec3( 0.5f,  0.5f,  0.5f), 1);
 
         // in case there are rotations
-        min = glm::min(minTemp, maxTemp);
-        max = glm::max(minTemp, maxTemp);
+        min = glm::min(blb, glm::min(blf, glm::min(brb, glm::min(brf, glm::min(tlb, glm::min(tlf, glm::min(trb, trf)))))));
+        max = glm::max(blb, glm::max(blf, glm::max(brb, glm::max(brf, glm::max(tlb, glm::max(tlf, glm::max(trb, trf)))))));
 
         m_kdes.append(new KDElement(min, max, pos, e));
 
@@ -95,7 +112,8 @@ void RayScene::transferSceneData(Scene *scene)
 
     m_tree = new KDTree(m_kdes, miniest, maximus);
 
-    cout << m_tree->getElements(m_tree->getRoot()).size() << ", " << m_kdes.size() << endl;
+//    assert(0);
+//    cout << m_tree->getElements(m_tree->getRoot()).size() << ", " << m_kdes.size() << endl;
 
 //    m_tree->printTree(m_tree->getRoot());
 }

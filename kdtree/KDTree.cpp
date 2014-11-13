@@ -66,9 +66,12 @@ QList<KDElement *> KDTree::checkIntersections(glm::vec4 p, glm::vec4 d, KDNode *
 
 void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
 {
-//    cout << "NODE: " << parent << ": " << depth << endl;
-//    cout << "elements: " << elements.size() << endl;
-    if (elements.size() <= 2) {
+//    cout << "NODE: " << parent << " : " << elements.size() << endl;
+//    for (int i = 0; i < elements.size(); i++) {
+//        cout << glm::to_string(elements.at(i)->getPos()) << endl;
+//    }
+//    cout << depth << endl;
+    if (elements.size() <= 1 || depth >= 7) {
         parent->setElements(elements);
         parent->setLeftChild(NULL);
         parent->setRightChild(NULL);
@@ -81,8 +84,11 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     int n = elements.size();
     glm::vec3 leftMax, rightMin;
 
-    int leftShapes = 0; // included in right child list
-    int rightShapes = n;
+    // number of shapes in each child
+    int num_left = 0;
+    int num_right = n;
+
+    qSort(elements.begin(), elements.end(), KDLessThan(dim));
 
     QList<KDElement *> mins = elements;
     QList<KDElement *> maxs = elements;
@@ -90,27 +96,25 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     qSort(mins.begin(), mins.end(), MinLessThan(dim));
     qSort(maxs.begin(), maxs.end(), MaxLessThan(dim));
 
-    calcCosts(dim, mins, maxs, parent, &rightShapes, &leftShapes, &leftMax, &rightMin);
+    calcCosts(dim, mins, maxs, parent, &num_right, &num_left, &leftMax, &rightMin);
 
     KDNode *left = NULL;
     KDNode *right = NULL;
-//    cout << maxIndex << ", " << minIndex << endl;
-    if (leftShapes) {
+
+    if (num_left) {
         left = new KDNode();
         left->setMin(parent->getMin());
         left->setMax(leftMax);
-        buildTree(depth + 1, mins.mid(0, leftShapes), left);
+        buildTree(depth + 1, mins.mid(0, num_left), left);
     }
-    if (rightShapes) {
+    if (num_right) {
         right = new KDNode();
         right->setMin(rightMin);
         right->setMax(parent->getMax());
-        buildTree(depth + 1, maxs.mid((n - rightShapes), rightShapes), right);
+        buildTree(depth + 1, maxs.mid((n - num_right), num_right), right);
     }
     parent->setLeftChild(left);
     parent->setRightChild(right);
-//    cout << depth << endl;
-//    assert(depth == 500);
 }
 
 
@@ -132,7 +136,9 @@ void KDTree::calcCosts(int dim, QList<KDElement *> mins, QList<KDElement *> maxs
     int right = n;
     int leftdiff = 1;
     int rightdiff = 0;
+
     while (mini < n) {
+
         mine = mins.at(mini);
         maxe = maxs.at(maxi);
 
@@ -162,7 +168,10 @@ void KDTree::calcCosts(int dim, QList<KDElement *> mins, QList<KDElement *> maxs
     }
 
     while (maxi < n) {
+
+        maxe = maxs.at(maxi);
         val = setRight(&mini, &maxi, &rightdiff, maxe, dim, &left, &right);
+
         min = parent->getMin();
         max = parent->getMax();
         min[dim] = val;
