@@ -9,7 +9,7 @@ public:
     friend class KDLessThan;
     friend class MinLessThan;
     friend class MaxLessThan;
-    KDElement(glm::vec4 min, glm::vec4 max, glm::vec4 pos, SceneElement *element);
+    KDElement(glm::vec3 min, glm::vec3 max, glm::vec4 pos, SceneElement *element);
     virtual ~KDElement();
 
     glm::vec4 getMin();

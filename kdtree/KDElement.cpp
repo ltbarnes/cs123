@@ -1,9 +1,9 @@
 #include "KDElement.h"
 
-KDElement::KDElement(glm::vec4 min, glm::vec4 max, glm::vec4 pos, SceneElement *element)
+KDElement::KDElement(glm::vec3 min, glm::vec3 max, glm::vec4 pos, SceneElement *element)
 {
-    m_min = min;
-    m_max = max;
+    m_min = glm::vec4(min, 1.f);
+    m_max = glm::vec4(max, 1.f);
     m_pos = pos;
     m_element = element;
 }
