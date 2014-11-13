@@ -10,6 +10,7 @@
 Canvas3D::Canvas3D(QGLFormat format, QWidget *parent) : SupportCanvas3D(format, parent)
 {
     m_timer = 0;
+    m_useSceneviewSceneOld = false;
 }
 
 Canvas3D::~Canvas3D()
