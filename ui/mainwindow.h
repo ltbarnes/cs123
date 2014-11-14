@@ -105,6 +105,8 @@ public slots:
     void updateCameraClip();
     void updateCameraHeightAngle();
     void setCameraAxonometric();
+
+    void changeToRenderButton();
 };
 
 #endif // MAINWINDOW_H

@@ -16,6 +16,7 @@
 #include "Canvas3D.h"
 #include "Settings.h"
 #include "RayScene.h"
+#include "mainwindow.h"
 
 
 #include <QPainter>
@@ -246,7 +247,7 @@ void Canvas2D::setScene(RayScene *scene)
 }
 
 
-void Canvas2D::renderImage(Camera *camera, int width, int height)
+void Canvas2D::renderImage(MainWindow *window, Camera *camera, int width, int height)
 {
     if (m_scene)
     {
@@ -255,7 +256,7 @@ void Canvas2D::renderImage(Camera *camera, int width, int height)
 
         // If you want the interface to stay responsive, make sure to call
         // QCoreApplication::processEvents() periodically during the rendering.
-        m_scene->render(this, camera, width, height);
+        m_scene->render(window, this, camera, width, height);
     }
 }
 

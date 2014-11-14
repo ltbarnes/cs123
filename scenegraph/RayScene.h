@@ -6,14 +6,38 @@
 #include "shapes/RayShape.h"
 #include <QHash>
 #include <QRunnable>
+#include <QObject>
+#include <QFutureWatcher>
+#include <QList>
+#include <QFuture>
 
 class Canvas2D;
+class RayTaskBlock;
+class MainWindow;
 
 //struct ImageBlock {
-//    BGRA *pixels;
+
+//    ImageBlock(BGRA *pixels, int ex, int why, int bw, int bh,
+//               int fw, int fh, glm::vec4 eye, glm::mat4 ftw)
+//    {
+//        pix = pixels;
+//        x = ex;
+//        y = why;
+//        blockWidth = bw;
+//        blockHeight = bh;
+//        fullWidth = fw;
+//        fullHeight = fh;
+//        p_eye = eye;
+//        M_ftw = ftw;
+//    }
+
+//    BGRA *pix;
 //    int x, y;
 //    int blockWidth, blockHeight;
 //    int fullWidth, fullHeight;
+//    glm::vec4 p_eye;
+//    glm::mat4 M_ftw;
+//    glm::vec3 color;
 //};
 
 /**
@@ -21,10 +45,11 @@ class Canvas2D;
  *
  *  Students will implement this class as necessary in the Ray project.
  */
-class RayScene : public Scene
+class RayScene : public QObject, Scene
 {
+    Q_OBJECT
 public:
-    friend class RayTask;
+    friend class RayTaskBlock;
     RayScene();
     virtual ~RayScene();
 
@@ -34,10 +59,13 @@ public:
 
     // Iterates through every pixel in the range (width, height), calculates the color
     // based on intersections at that point and paints the provided canvas.
-    void render(Canvas2D *canvas, Camera *camera, int width, int height);
+    void render(MainWindow *window, Canvas2D *canvas, Camera *camera, int width, int height);
 
     // stops the rendering after the current canvas pixel row is finished.
     void stopRendering();
+
+public slots:
+    void updateCanvas();
 
 protected:
 
@@ -56,16 +84,28 @@ protected:
 
     // flag to prevent further rendering
     bool m_stopRendering;
+
+
+private:
+    QFutureWatcher<void> m_futureWatcher;
+    Canvas2D *m_canvas;
+    QList<RayTaskBlock *> tasks;
+    QFuture<void> future;
 };
 
 
-class RayTask : public QRunnable
+class RayTaskBlock : public QObject
 {
+    Q_OBJECT
 public:
-    RayTask(RayScene *scene, BGRA *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw);
-    virtual ~RayTask();
+    RayTaskBlock(RayScene *scene, Canvas2D *pix, int x, int y, int bw, int bh,
+                 int iw, int ih, glm::vec4 p_eye, glm::mat4 M_ftw);
+    virtual ~RayTaskBlock();
 
-    void run();
+    void compute();
+
+signals:
+    void doneDrawing(Canvas2D *canvas);
 
 private:
     // performs a ray tracing algorithm at the specified point.
@@ -75,9 +115,11 @@ private:
     glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
 
     RayScene *m_scene;
-    BGRA *m_canvas;
+    Canvas2D *m_pix;
+    QRect rect;
     int m_x, m_y;
-    float m_width, m_height;
+    int m_blockWidth, m_blockHeight;
+    int m_imageWidth, m_imageHeight;
     glm::vec4 m_p_eye;
     glm::mat4 m_M_ftw;
 };

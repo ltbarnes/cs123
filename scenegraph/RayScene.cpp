@@ -11,7 +11,19 @@
 #include "kdtree/KDTree.h"
 #include <qcoreapplication.h>
 #include <QThreadPool>
+#include <QThread>
+#include <QFuture>
+#include <QtConcurrent/QtConcurrent>
+#include <QObject>
+#include "moc_RayScene.cpp"
+#include "mainwindow.h"
 
+using namespace std;
+
+void testFunction(RayTaskBlock *task) {
+    task->compute();
+    QCoreApplication::processEvents();
+}
 
 RayScene::RayScene()
 {
@@ -21,6 +33,7 @@ RayScene::RayScene()
     m_primShapes.insert(PRIMITIVE_SPHERE, new RaySphere());
 
     m_tree = NULL;
+    m_canvas = NULL;
 }
 
 RayScene::~RayScene()
@@ -46,11 +59,17 @@ RayScene::~RayScene()
 void RayScene::stopRendering()
 {
     m_stopRendering = true;
+    if (!m_futureWatcher.isFinished()) {
+        m_futureWatcher.cancel();
+        m_futureWatcher.waitForFinished();
+    }
 }
 
 
 void RayScene::transferSceneData(Scene *scene)
 {
+    cout << "Transfering scene data." << endl;
+
     // delete old list and tree;
     int num_kdelements = m_kdes.size();
     for (int i = 0; i < num_kdelements; i++) {
@@ -98,24 +117,21 @@ void RayScene::transferSceneData(Scene *scene)
     miniest += glm::vec3(-1.f);
     maximus += glm::vec3(1.f);
 
+
+    cout << "Building KD Tree" << endl;
+
     // create new tree defined by the smallest and largest bounding points in the scene
-
     m_tree = new KDTree(m_kdes, miniest, maximus);
-
-//    assert(0);
-//    cout << m_tree->getElements(m_tree->getRoot()).size() << ", " << m_kdes.size() << endl;
-
-//    m_tree->printTree(m_tree->getRoot());
 }
 
 
-void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
+void RayScene::render(MainWindow *window, Canvas2D *canvas, Camera *camera, int width, int height)
 {
     m_stopRendering = false;
-
+    m_canvas = canvas;
     // reset the canvas size and get the pixel array
-    canvas->resize(width, height);
-    BGRA* pix = canvas->data();
+    m_canvas->resize(width, height);
+//    BGRA* pix = canvas->data();
 
 
     // get the film to world matrix and eye point
@@ -126,100 +142,114 @@ void RayScene::render(Canvas2D *canvas, Camera *camera, int width, int height)
 
     // iterate through all pixels
 //    int i;
-    for (int y = 0; y < height; y++) {
-//        i = y * width;
-//        for (int x = 0; x < width; x++) {
-
-//            // sample each corner of the pixel and the center then average
-//            if (settings.useSuperSampling) {
-//                tl = rayTrace(x + 0.0f, y + 0.0f, width, height, p_eye, M_ftw);
-//                tr = rayTrace(x + 1.0f, y + 0.0f, width, height, p_eye, M_ftw);
-//                bl = rayTrace(x + 0.0f, y + 1.0f, width, height, p_eye, M_ftw);
-//                br = rayTrace(x + 1.0f, y + 1.0f, width, height, p_eye, M_ftw);
-//                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
-//                color = (tl + tr + bl + br + color) / 5.f;
-
-//            } else { // sample the center point of the pixel
-//                color = rayTrace(x + 0.5f, y + 0.5f, width, height, p_eye, M_ftw);
-//            }
-//            pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
-//            pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
-//            pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
-
-            RayTask *runnable = new RayTask(this, pix, y, width, height, p_eye, M_ftw);
-            QThreadPool::globalInstance()->start(runnable);
-//            QThreadPool::globalInstance()->waitForDone();
-//            canvas->repaint();
-//                QCoreApplication::processEvents();
-
-//            i++;
-//        }
-        // repaint and check the gui
-//        canvas->repaint();
+//    QList<RayTaskBlock *> tasks;
+    for (int i = 0; i < tasks.size(); i++) {
+        delete tasks.at(i);
     }
-    QThreadPool::globalInstance()->waitForDone();
-    canvas->repaint();
+    tasks.clear();
+    RayTaskBlock *task;
+    int y;
+    for (y = 0; y + 10 < height; y += 10) {
+        task = new RayTaskBlock(this, m_canvas, 0, y, width, 10, width, height, p_eye, M_ftw);
+//        QObject::connect(task, SIGNAL(doneDrawing(Canvas2D*)), this, SLOT(updateCanvas(Canvas2D*)));
+        tasks.append(task);
+    }
+    task = new RayTaskBlock(this, m_canvas, 0, y, width, height - y, width, height, p_eye, M_ftw);
+    tasks.append(task);
 
-    cout << "width: " << width << endl;
+    QObject::connect(&m_futureWatcher, SIGNAL(progressValueChanged(int)), this, SLOT(updateCanvas()));
+    QObject::connect(&m_futureWatcher, SIGNAL(finished()), this, SLOT(updateCanvas()));
+    QObject::connect(&m_futureWatcher, SIGNAL(finished()), window, SLOT(changeToRenderButton()));
+
+    future = QtConcurrent::map(tasks, &testFunction);
+
+    m_futureWatcher.setFuture(future);
+    QCoreApplication::processEvents();
+}
+
+void RayScene::updateCanvas()
+{
+    if (m_canvas)
+        m_canvas->repaint();
 }
 
 
-RayTask::RayTask(RayScene *scene, BGRA *canvas, int row, int width, int height, glm::vec4 p_eye, glm::mat4 M_ftw)
+//void RayTaskBlock::processBlock(RayTaskBlock &block)
+//{
+//    int h = block.getBlockHeight();
+//    int w = block.getBlockWidth();
+//    float bx = block.getX() + 0.5;
+//    bloat by = block.getY() + 0.5;
+//    for (int y = 0; y < block.blockHeight; y++) {
+//        for (int x = 0; x < block.blockWidth; x++) {
+//            block.color = rayTrace(x + block.x + 0.5, y + block.y + 0.5, block.fullWidth,
+//                     block.fullHeight, block.p_eye, block.M_ftw);
+//        }
+//    }
+//}
+
+RayTaskBlock::RayTaskBlock(RayScene *scene, Canvas2D *pix, int x, int y, int bw, int bh, int iw, int ih, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
     m_scene = scene;
-    m_canvas = canvas;
-    m_x = 0.f;
-    m_y = row;
-    m_width = width;
-    m_height = height;
+    m_pix = pix;
+    rect = QRect(x, y, bw, bh);
+    m_x = x;
+    m_y = y;
+    m_blockWidth = bw;
+    m_blockHeight = bh;
+    m_imageWidth = iw;
+    m_imageHeight = ih;
     m_p_eye = p_eye;
     m_M_ftw = M_ftw;
 }
 
 
-RayTask::~RayTask()
+RayTaskBlock::~RayTaskBlock()
 {
 }
 
 
-void RayTask::run()
+void RayTaskBlock::compute()
 {
     glm::vec3 color, tl, tr, bl, br;
+    BGRA *pix = m_pix->data();
 
-    int i = m_y * m_width;
-    int x;
-    for (x = 0; x < m_width; x++) {
+    int i;
+    for (int y = 0; y < m_blockHeight; y++) {
+        i = (m_y + y) * m_imageWidth;
 
-        if (m_scene->m_stopRendering)
-            break;
+        for (int x = 0; x < m_blockWidth; x++) {
 
-        // sample each corner of the pixel and the center then average
-        if (settings.useSuperSampling) {
-            tl = rayTrace(x + 0.0f, m_y + 0.0f, m_width, m_height, m_p_eye, m_M_ftw);
-            tr = rayTrace(x + 1.0f, m_y + 0.0f, m_width, m_height, m_p_eye, m_M_ftw);
-            bl = rayTrace(x + 0.0f, m_y + 1.0f, m_width, m_height, m_p_eye, m_M_ftw);
-            br = rayTrace(x + 1.0f, m_y + 1.0f, m_width, m_height, m_p_eye, m_M_ftw);
-            color = rayTrace(x + 0.5f, m_y + 0.5f, m_width, m_height, m_p_eye, m_M_ftw);
-            color = (tl + tr + bl + br + color) / 5.f;
+            if (m_scene->m_stopRendering)
+                break;
 
-        } else { // sample the center point of the pixel
-            color = rayTrace(x + 0.5f, m_y + 0.5f, m_width, m_height, m_p_eye, m_M_ftw);
+            // sample each corner of the pixel and the center then average
+            if (settings.useSuperSampling) {
+                tl = rayTrace(x + m_x + 0.0f, y + m_y + 0.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                tr = rayTrace(x + m_x + 1.0f, y + m_y + 0.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                bl = rayTrace(x + m_x + 0.0f, y + m_y + 1.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                br = rayTrace(x + m_x + 1.0f, y + m_y + 1.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                color = rayTrace(x + m_x + 0.5f, y + m_y + 0.5f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                color = (tl + tr + bl + br + color) / 5.f;
+
+            } else { // sample the center point of the pixel
+                color = rayTrace(x + m_x + 0.5f, y + m_y + 0.5f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+            }
+
+            pix[i].r = (unsigned char)(color.r * 255.f + 0.5f);
+            pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
+            pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
+
+            i++;
         }
-
-        m_canvas[i].r = (unsigned char)(color.r * 255.f + 0.5f);
-        m_canvas[i].g = (unsigned char)(color.g * 255.f + 0.5f);
-        m_canvas[i].b = (unsigned char)(color.b * 255.f + 0.5f);
-
-        i++;
-//        QCoreApplication::processEvents();
+//        assert(y < 3);
+//        cout << i << endl;
     }
-//    cout << x << endl;
-//    m_canvas->repaint();
-//    QCoreApplication::processEvents();
+    emit doneDrawing(m_pix);
 }
 
 
-glm::vec3 RayTask::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
+glm::vec3 RayTaskBlock::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
     // set the film and world vectors
     glm::vec4 farFilm = glm::vec4(x * 2.0 / xmax - 1.f, 1.f - y * 2.0 / ymax, -1.f, 1);
@@ -278,7 +308,7 @@ glm::vec3 RayTask::rayTrace(float x, float y, float xmax, float ymax, glm::vec4 
 }
 
 
-glm::vec3 RayTask::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n)
+glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n)
 {
     CS123SceneLightData *light;
     CS123SceneMaterial &mat = prim->material;
@@ -324,5 +354,3 @@ glm::vec3 RayTask::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::ve
 
     return color;
 }
-
-
