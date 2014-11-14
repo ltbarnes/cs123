@@ -407,6 +407,7 @@ void MainWindow::filterImage()
 
 void MainWindow::renderImage()
 {
+    setAllEnabled(false);
     // Make sure OpenGL gets a chance to update the OrbitCamera, which can only be done when
     // that tab is active (because it needs the OpenGL context for its matrix transforms)
     ui->tabWidget->setCurrentIndex(TAB_3D);
@@ -423,30 +424,33 @@ void MainWindow::renderImage()
     OpenGLScene *glScene = m_canvas3D->getScene();
     if (glScene != NULL)
     {
+
+        // Disable the UI so the user can't interfere with the raytracing
+
+        // Swap the "render" button for the "stop rendering" button
+        ui->rayRenderButton->setHidden(true);
+        ui->rayStopRenderingButton->setHidden(false);
+
         // TODO: Set up RayScene from glScene and call ui->canvas2D->setScene()
         RayScene *rayScene = new RayScene();
 
         rayScene->transferSceneData(glScene);
         ui->canvas2D->setScene(rayScene);
 
-        // Disable the UI so the user can't interfere with the raytracing
-        setAllEnabled(false);
-
-        // Swap the "render" button for the "stop rendering" button
-        ui->rayRenderButton->setHidden(true);
-        ui->rayStopRenderingButton->setHidden(false);
-
         // Render the image
         QSize activeTabSize = ui->tabWidget->currentWidget()->size();
-        ui->canvas2D->renderImage(m_canvas3D->getCamera(), activeTabSize.width(), activeTabSize.height());
+        ui->canvas2D->renderImage(this, m_canvas3D->getCamera(), activeTabSize.width(), activeTabSize.height());
+    }
+}
 
+void MainWindow::changeToRenderButton()
+{
         // Swap the "stop rendering" button for the "render" button
         ui->rayRenderButton->setHidden(false);
         ui->rayStopRenderingButton->setHidden(true);
 
         // Enable the UI again
         setAllEnabled(true);
-    }
 }
 
 void MainWindow::setAllEnabled(bool enabled)

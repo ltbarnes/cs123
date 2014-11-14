@@ -6,6 +6,7 @@
 #include "filter/Filter.h"
 
 class RayScene;
+class MainWindow;
 
 class Camera;
 
@@ -25,7 +26,7 @@ public:
     void setScene(RayScene *scene);
 
     // UI will call this from the button on the "Ray" dock
-    void renderImage(Camera *camera, int width, int height);
+    void renderImage(MainWindow *window, Camera *camera, int width, int height);
 
     // This will be called when the settings have changed
     virtual void settingsChanged();
