@@ -75,17 +75,6 @@ void RayScene::transferSceneData(Scene *scene)
 {
     cout << "Transfering scene data." << endl;
 
-//    // delete old list and tree;
-//    int num_kdelements = m_kdes.size();
-//    for (int i = 0; i < num_kdelements; i++) {
-//        delete m_kdes.at(i);
-//    }
-//    m_kdes.clear();
-//    if (m_tree) {
-//        delete m_tree;
-//        m_tree = NULL;
-//    }
-
     // transfer global data
     this->setGlobal(scene->getGlobalData());
 
@@ -118,9 +107,9 @@ void RayScene::transferSceneData(Scene *scene)
     }
     m_elements.clear();
 
-    // buffer on the sides of the scene
-    miniest += glm::vec3(-1.f);
-    maximus += glm::vec3(1.f);
+////     buffer on the sides of the scene
+//    miniest += glm::vec3(-1.f);
+//    maximus += glm::vec3(1.f);
 
 
     if (m_kdes.size() > 0) {

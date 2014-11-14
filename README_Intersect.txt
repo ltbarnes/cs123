@@ -13,13 +13,14 @@ DESIGN
 
 
 	KDTree:
-		Work in progress. Hopefully it will be functional for Ray. Likely to see some remnants floating around the project.
+		The KDTree is a collection of KDNodes each with two KDNode children. The children are created by designating a "splitting plane" within each parent and constructing the sub volumes from the AABBs created by the split. If a node only has one shape in it or exceeds a specified max depth the node is designated a leaf node and both children are null.
 
 
 	Super Sampling:
 		When super sampling is selected samples are taken from each corner of the pixel in addition to the middle point then averaged together.
 
 
-BUGS
-
-	KDTree fails pretty hard when it's used on scenes with more than one shape.
+BUGS:
+	
+	
+	
