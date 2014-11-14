@@ -27,17 +27,6 @@ void KDTree::deleteNode(KDNode *node) {
 }
 
 
-QList<KDElement *> KDTree::getElements(KDNode *node)
-{
-    QList<KDElement *> elements = node->getElements();
-    if (node->hasLeftChild())
-        elements.append(getElements(node->getLeftChild()));
-    if (node->hasRightChild())
-        elements.append(getElements(node->getRightChild()));
-    return elements;
-}
-
-
 KDNode *KDTree::getRoot()
 {
     return m_root;
@@ -66,12 +55,7 @@ QList<KDElement *> KDTree::checkIntersections(glm::vec4 p, glm::vec4 d, KDNode *
 
 void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
 {
-//    cout << "NODE: " << parent << " : " << elements.size() << endl;
-//    for (int i = 0; i < elements.size(); i++) {
-//        cout << glm::to_string(elements.at(i)->getPos()) << endl;
-//    }
-//    cout << depth << endl;
-    if (elements.size() <= 1 || depth >= 7) {
+    if (elements.size() <= 1 || depth >= 24) {
         parent->setElements(elements);
         parent->setLeftChild(NULL);
         parent->setRightChild(NULL);
@@ -85,10 +69,10 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     glm::vec3 leftMax, rightMin;
 
     // number of shapes in each child
-    int num_left = 0;
-    int num_right = n;
+    int numLeft = 0;
+    int numRight = n;
 
-    qSort(elements.begin(), elements.end(), KDLessThan(dim));
+    qSort(elements.begin(), elements.end(), PosLessThan(dim));
 
     QList<KDElement *> mins = elements;
     QList<KDElement *> maxs = elements;
@@ -96,22 +80,22 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     qSort(mins.begin(), mins.end(), MinLessThan(dim));
     qSort(maxs.begin(), maxs.end(), MaxLessThan(dim));
 
-    calcCosts(dim, mins, maxs, parent, &num_right, &num_left, &leftMax, &rightMin);
+    calcCosts(dim, mins, maxs, parent, &numRight, &numLeft, &leftMax, &rightMin);
 
     KDNode *left = NULL;
     KDNode *right = NULL;
 
-    if (num_left) {
+    if (numLeft) {
         left = new KDNode();
         left->setMin(parent->getMin());
         left->setMax(leftMax);
-        buildTree(depth + 1, mins.mid(0, num_left), left);
+        buildTree(depth + 1, mins.mid(0, numLeft), left);
     }
-    if (num_right) {
+    if (numRight) {
         right = new KDNode();
         right->setMin(rightMin);
         right->setMax(parent->getMax());
-        buildTree(depth + 1, maxs.mid((n - num_right), num_right), right);
+        buildTree(depth + 1, maxs.mid((n - numRight), numRight), right);
     }
     parent->setLeftChild(left);
     parent->setRightChild(right);
@@ -119,7 +103,7 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
 
 
 void KDTree::calcCosts(int dim, QList<KDElement *> mins, QList<KDElement *> maxs, KDNode *parent,
-                       int *rightI, int *leftI, glm::vec3 *leftMax, glm::vec3 *rightMin)
+                       int *numRight, int *numLeft, glm::vec3 *leftMax, glm::vec3 *rightMin)
 {
 
     float saParent = parent->getSA();
@@ -160,8 +144,8 @@ void KDTree::calcCosts(int dim, QList<KDElement *> mins, QList<KDElement *> maxs
         // check cost against best cost
         if (cost < bestCost) {
             bestCost = cost;
-            *rightI = right;
-            *leftI = left;
+            *numRight = right;
+            *numLeft = left;
             *leftMax = max;
             *rightMin = min;
         }
@@ -185,8 +169,8 @@ void KDTree::calcCosts(int dim, QList<KDElement *> mins, QList<KDElement *> maxs
         // check cost against best cost
         if (cost < bestCost) {
             bestCost = cost;
-            *rightI = right;
-            *leftI = left;
+            *numRight = right;
+            *numLeft = left;
             *leftMax = max;
             *rightMin = min;
         }
@@ -216,32 +200,45 @@ float KDTree::setRight(int *mini, int *maxi, int *rightdiff, KDElement *maxe, in
 }
 
 
-void KDTree::printTree(KDNode *node) {
-    QList<KDNode *> q;
-    q.append(node);
-    while(!q.isEmpty()) {
-        node = q.at(0);
-        q.removeAt(0);
+// ////// Potentially useful debugging methods ////// //
 
-        if (node != NULL) {
-            KDTree::printNode(node);
-            if (node->hasLeftChild())
-                q.append(node->getLeftChild());
-            if (node->hasRightChild())
-                q.append(node->getRightChild());
-        }
-    }
-}
+//QList<KDElement *> KDTree::getElements(KDNode *node)
+//{
+//    QList<KDElement *> elements = node->getElements();
+//    if (node->hasLeftChild())
+//        elements.append(getElements(node->getLeftChild()));
+//    if (node->hasRightChild())
+//        elements.append(getElements(node->getRightChild()));
+//    return elements;
+//}
 
 
-void KDTree::printNode(KDNode *node)
-{
-    cout << "NODE: " << node << endl;
-    cout << "min: " << glm::to_string(node->getMin()) << endl;
-    cout << "max: " << glm::to_string(node->getMax()) << endl;
-    cout << "left: " << node->getLeftChild() << endl;
-    cout << "right: " << node->getRightChild() << endl;
-    node->printElements();
-}
+//void KDTree::printTree(KDNode *node) {
+//    QList<KDNode *> q;
+//    q.append(node);
+//    while(!q.isEmpty()) {
+//        node = q.at(0);
+//        q.removeAt(0);
+
+//        if (node != NULL) {
+//            KDTree::printNode(node);
+//            if (node->hasLeftChild())
+//                q.append(node->getLeftChild());
+//            if (node->hasRightChild())
+//                q.append(node->getRightChild());
+//        }
+//    }
+//}
+
+
+//void KDTree::printNode(KDNode *node)
+//{
+//    cout << "NODE: " << node << endl;
+//    cout << "min: " << glm::to_string(node->getMin()) << endl;
+//    cout << "max: " << glm::to_string(node->getMax()) << endl;
+//    cout << "left: " << node->getLeftChild() << endl;
+//    cout << "right: " << node->getRightChild() << endl;
+//    node->printElements();
+//}
 
 

@@ -6,12 +6,14 @@
 class KDElement
 {
 public:
-    friend class KDLessThan;
-    friend class MinLessThan;
-    friend class MaxLessThan;
+    friend class PosLessThan; // sorts based on position
+    friend class MinLessThan; // sorts based on min coordinates
+    friend class MaxLessThan; // sorts based on max coordinates
+
     KDElement(glm::vec3 min, glm::vec3 max, glm::vec4 pos, SceneElement *element);
     virtual ~KDElement();
 
+    // getters
     glm::vec4 getMin();
     glm::vec4 getMax();
     glm::vec4 getPos();
@@ -19,18 +21,29 @@ public:
     glm::mat4 getTrans();
 
 protected:
+    // minimum, maximum, and center coordinates
     glm::vec4 m_min;
     glm::vec4 m_max;
     glm::vec4 m_pos;
+
+    // shape primitive and trans matrix
     SceneElement *m_element;
 };
 
-
-class KDLessThan
+/*
+ * The following 3 classes are essentially the same but each one
+ * overloads the operator in a slightly different way. They all
+ * compare the corresponding coordinates based on a specified dimension.
+ *
+ * PosLessThan  -   compares center position
+ * MinLessThan  -   compares minimum coordinates
+ * MaxLessThan  -   compares maximum coordinates
+ */
+class PosLessThan
 {
 public:
-    KDLessThan(int dimension);
-    virtual ~KDLessThan();
+    PosLessThan(int dimension);
+    virtual ~PosLessThan();
     bool operator()(const KDElement *left, const KDElement *right) const;
 
 private:

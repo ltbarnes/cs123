@@ -7,7 +7,8 @@ KDNode::KDNode()
 
 KDNode::~KDNode()
 {
-    // TODO: delete elements
+    // element deletion is handled elsewhere because
+    // multiple nodes can point to the same object
 }
 
 
@@ -62,6 +63,7 @@ QList<KDElement *> KDNode::getElements()
 void KDNode::printElements()
 {
     cout << "elements: ";
+
     int n = m_elements.size();
     for (int i = 0; i < n; i++)
     {

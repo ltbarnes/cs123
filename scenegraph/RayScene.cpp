@@ -75,16 +75,16 @@ void RayScene::transferSceneData(Scene *scene)
 {
     cout << "Transfering scene data." << endl;
 
-    // delete old list and tree;
-    int num_kdelements = m_kdes.size();
-    for (int i = 0; i < num_kdelements; i++) {
-        delete m_kdes.at(i);
-    }
-    m_kdes.clear();
-    if (m_tree) {
-        delete m_tree;
-        m_tree = NULL;
-    }
+//    // delete old list and tree;
+//    int num_kdelements = m_kdes.size();
+//    for (int i = 0; i < num_kdelements; i++) {
+//        delete m_kdes.at(i);
+//    }
+//    m_kdes.clear();
+//    if (m_tree) {
+//        delete m_tree;
+//        m_tree = NULL;
+//    }
 
     // transfer global data
     this->setGlobal(scene->getGlobalData());
@@ -123,10 +123,12 @@ void RayScene::transferSceneData(Scene *scene)
     maximus += glm::vec3(1.f);
 
 
-    cout << "Building KD Tree" << endl;
+    if (m_kdes.size() > 0) {
+        cout << "Building KD Tree" << endl;
 
-    // create new tree defined by the smallest and largest bounding points in the scene
-    m_tree = new KDTree(m_kdes, miniest, maximus);
+        // create new tree defined by the smallest and largest bounding points in the scene
+        m_tree = new KDTree(m_kdes, miniest, maximus);
+    }
 }
 
 

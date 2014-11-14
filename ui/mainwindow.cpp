@@ -43,6 +43,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QList<QAction*> actions;
 
+    m_rayScene = NULL;
+    m_oldScene = NULL;
+    m_oldShape = settings.shapeType;
+
 #define SETUP_ACTION(dock, key) \
     actions.push_back(ui->dock->toggleViewAction()); \
     actions.back()->setShortcut(QKeySequence(key));
@@ -281,6 +285,11 @@ void MainWindow::settingsChanged()
 {
     ui->canvas2D->settingsChanged();
     m_canvas3D->settingsChanged();
+
+    if (settings.shapeType != m_oldShape) {
+        m_oldShape = settings.shapeType;
+        m_rayScene = NULL;
+    }
 }
 
 void MainWindow::setAllRayFeatures(bool checked)
@@ -331,6 +340,10 @@ void MainWindow::fileOpen()
             CS123XmlSceneParser parser(file.toLatin1().data());
             if (parser.parse())
             {
+//                if (m_rayScene)
+//                    delete m_rayScene;
+//                m_rayScene = new RayScene();
+
                 SceneviewScene *scene = new SceneviewScene;
                 if (m_canvas3D->isInitialized()) scene->init();
 
@@ -407,7 +420,9 @@ void MainWindow::filterImage()
 
 void MainWindow::renderImage()
 {
+    // Disable the UI so the user can't interfere with the raytracing
     setAllEnabled(false);
+
     // Make sure OpenGL gets a chance to update the OrbitCamera, which can only be done when
     // that tab is active (because it needs the OpenGL context for its matrix transforms)
     ui->tabWidget->setCurrentIndex(TAB_3D);
@@ -424,22 +439,27 @@ void MainWindow::renderImage()
     OpenGLScene *glScene = m_canvas3D->getScene();
     if (glScene != NULL)
     {
-
-        // Disable the UI so the user can't interfere with the raytracing
-
         // Swap the "render" button for the "stop rendering" button
         ui->rayRenderButton->setHidden(true);
         ui->rayStopRenderingButton->setHidden(false);
 
         // TODO: Set up RayScene from glScene and call ui->canvas2D->setScene()
-        RayScene *rayScene = new RayScene();
+        cout << "old: " << m_oldScene << endl;
+        cout << "scene: " << glScene << endl;
 
-        rayScene->transferSceneData(glScene);
-        ui->canvas2D->setScene(rayScene);
+        if (m_oldScene != glScene || !m_rayScene) {
+            m_rayScene = new RayScene();
+            m_oldScene = glScene;
+            m_rayScene->transferSceneData(glScene);
+            ui->canvas2D->setScene(m_rayScene);
+        }
+
 
         // Render the image
         QSize activeTabSize = ui->tabWidget->currentWidget()->size();
         ui->canvas2D->renderImage(this, m_canvas3D->getCamera(), activeTabSize.width(), activeTabSize.height());
+    } else {
+        setAllEnabled(true);
     }
 }
 
