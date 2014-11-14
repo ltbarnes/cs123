@@ -10,17 +10,17 @@
 #include "shapes/RaySphere.h"
 #include "kdtree/KDTree.h"
 #include <qcoreapplication.h>
-#include <QThreadPool>
 #include <QThread>
-#include <QFuture>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent>
 #include <QObject>
 #include "moc_RayScene.cpp"
 #include "mainwindow.h"
 
+#define BLOCK_HEIGHT 10
+
 using namespace std;
 
-void testFunction(RayTaskBlock *task) {
+void executeTask(RayTaskBlock *task) {
     task->compute();
     QCoreApplication::processEvents();
 }
@@ -33,7 +33,7 @@ RayScene::RayScene()
     m_primShapes.insert(PRIMITIVE_SPHERE, new RaySphere());
 
     m_tree = NULL;
-    m_canvas = NULL;
+    m_tasks.clear();
 }
 
 RayScene::~RayScene()
@@ -53,6 +53,11 @@ RayScene::~RayScene()
     // overlap an AABB
 
      delete m_tree;
+
+    for (int i = 0; i < m_tasks.size(); i++) {
+        delete m_tasks.at(i);
+    }
+    m_tasks.clear();
 }
 
 
@@ -128,65 +133,61 @@ void RayScene::transferSceneData(Scene *scene)
 void RayScene::render(MainWindow *window, Canvas2D *canvas, Camera *camera, int width, int height)
 {
     m_stopRendering = false;
-    m_canvas = canvas;
-    // reset the canvas size and get the pixel array
-    m_canvas->resize(width, height);
-//    BGRA* pix = canvas->data();
 
+    // reset the canvas size
+    canvas->resize(width, height);
 
     // get the film to world matrix and eye point
     glm::mat4 M_ftw = glm::inverse(camera->getViewMatrix()) * glm::inverse(camera->getScaleMatrix());
     glm::vec4 p_eye = glm::inverse(camera->getViewMatrix()) * glm::vec4(0,0,0,1);
 
-//    glm::vec3 color, tl, tr, bl, br;
-
-    // iterate through all pixels
-//    int i;
-//    QList<RayTaskBlock *> tasks;
-    for (int i = 0; i < tasks.size(); i++) {
-        delete tasks.at(i);
+    // delete previous tasks if any
+    for (int i = 0; i < m_tasks.size(); i++) {
+        delete m_tasks.at(i);
     }
-    tasks.clear();
+    m_tasks.clear();
+
     RayTaskBlock *task;
     int y;
-    for (y = 0; y + 10 < height; y += 10) {
-        task = new RayTaskBlock(this, m_canvas, 0, y, width, 10, width, height, p_eye, M_ftw);
-//        QObject::connect(task, SIGNAL(doneDrawing(Canvas2D*)), this, SLOT(updateCanvas(Canvas2D*)));
-        tasks.append(task);
+
+    // iterate through all pixels
+    int subH = height - BLOCK_HEIGHT;
+    for (y = 0; y < subH; y += BLOCK_HEIGHT) {
+
+        task = new RayTaskBlock(this, canvas, 0, y, width, BLOCK_HEIGHT, width, height, p_eye, M_ftw);
+
+        if (settings.useMultiThreading) {
+            m_tasks.append(task);
+
+        } else {
+            task->compute();
+            canvas->repaint();
+            QCoreApplication::processEvents();
+            delete task;
+        }
     }
-    task = new RayTaskBlock(this, m_canvas, 0, y, width, height - y, width, height, p_eye, M_ftw);
-    tasks.append(task);
 
-    QObject::connect(&m_futureWatcher, SIGNAL(progressValueChanged(int)), this, SLOT(updateCanvas()));
-    QObject::connect(&m_futureWatcher, SIGNAL(finished()), this, SLOT(updateCanvas()));
-    QObject::connect(&m_futureWatcher, SIGNAL(finished()), window, SLOT(changeToRenderButton()));
+    task = new RayTaskBlock(this, canvas, 0, y, width, height - y, width, height, p_eye, M_ftw);
 
-    future = QtConcurrent::map(tasks, &testFunction);
+    if (settings.useMultiThreading) {
+        m_tasks.append(task);
 
-    m_futureWatcher.setFuture(future);
+        QObject::connect(&m_futureWatcher, SIGNAL(progressValueChanged(int)), canvas, SLOT(repaint()));
+        QObject::connect(&m_futureWatcher, SIGNAL(finished()), canvas, SLOT(repaint()));
+        QObject::connect(&m_futureWatcher, SIGNAL(finished()), window, SLOT(changeToRenderButton()));
+
+        m_futureWatcher.setFuture(QtConcurrent::map(m_tasks, &executeTask));
+
+    } else {
+        task->compute();
+        canvas->repaint();
+        delete task;
+        window->changeToRenderButton();
+    }
+
     QCoreApplication::processEvents();
 }
 
-void RayScene::updateCanvas()
-{
-    if (m_canvas)
-        m_canvas->repaint();
-}
-
-
-//void RayTaskBlock::processBlock(RayTaskBlock &block)
-//{
-//    int h = block.getBlockHeight();
-//    int w = block.getBlockWidth();
-//    float bx = block.getX() + 0.5;
-//    bloat by = block.getY() + 0.5;
-//    for (int y = 0; y < block.blockHeight; y++) {
-//        for (int x = 0; x < block.blockWidth; x++) {
-//            block.color = rayTrace(x + block.x + 0.5, y + block.y + 0.5, block.fullWidth,
-//                     block.fullHeight, block.p_eye, block.M_ftw);
-//        }
-//    }
-//}
 
 RayTaskBlock::RayTaskBlock(RayScene *scene, Canvas2D *pix, int x, int y, int bw, int bh, int iw, int ih, glm::vec4 p_eye, glm::mat4 M_ftw)
 {

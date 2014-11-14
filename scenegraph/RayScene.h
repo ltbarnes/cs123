@@ -9,45 +9,20 @@
 #include <QObject>
 #include <QFutureWatcher>
 #include <QList>
-#include <QFuture>
+#include <QtConcurrent>
 
 class Canvas2D;
 class RayTaskBlock;
 class MainWindow;
 
-//struct ImageBlock {
-
-//    ImageBlock(BGRA *pixels, int ex, int why, int bw, int bh,
-//               int fw, int fh, glm::vec4 eye, glm::mat4 ftw)
-//    {
-//        pix = pixels;
-//        x = ex;
-//        y = why;
-//        blockWidth = bw;
-//        blockHeight = bh;
-//        fullWidth = fw;
-//        fullHeight = fh;
-//        p_eye = eye;
-//        M_ftw = ftw;
-//    }
-
-//    BGRA *pix;
-//    int x, y;
-//    int blockWidth, blockHeight;
-//    int fullWidth, fullHeight;
-//    glm::vec4 p_eye;
-//    glm::mat4 M_ftw;
-//    glm::vec3 color;
-//};
 
 /**
  * @class RayScene
  *
  *  Students will implement this class as necessary in the Ray project.
  */
-class RayScene : public QObject, Scene
+class RayScene : public Scene
 {
-    Q_OBJECT
 public:
     friend class RayTaskBlock;
     RayScene();
@@ -64,16 +39,7 @@ public:
     // stops the rendering after the current canvas pixel row is finished.
     void stopRendering();
 
-public slots:
-    void updateCanvas();
-
 protected:
-
-    // performs a ray tracing algorithm at the specified point.
-//    glm::vec3 rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
-
-    // calculates the color of a point based on the lighting and materials of the shape
-//    glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
 
     // maps shape types to actual shape instances so multiple shapes of the same type aren't stored
     QHash<PrimitiveType, RayShape*> m_primShapes;
@@ -87,10 +53,9 @@ protected:
 
 
 private:
+    // Thread stuffs
     QFutureWatcher<void> m_futureWatcher;
-    Canvas2D *m_canvas;
-    QList<RayTaskBlock *> tasks;
-    QFuture<void> future;
+    QList<RayTaskBlock *> m_tasks;
 };
 
 
