@@ -49,9 +49,7 @@ RayScene::~RayScene()
     }
     m_kdes.clear();
 
-    // need both because m_tree stores repeat elements if they
-    // overlap an AABB
-
+    // need both because m_tree stores repeat elements if shapes overlap an AABB
      delete m_tree;
 
     for (int i = 0; i < m_tasks.size(); i++) {
@@ -106,10 +104,6 @@ void RayScene::transferSceneData(Scene *scene)
         maximus = glm::max(max, maximus);
     }
     m_elements.clear();
-
-////     buffer on the sides of the scene
-//    miniest += glm::vec3(-1.f);
-//    maximus += glm::vec3(1.f);
 
 
     if (m_kdes.size() > 0) {
@@ -216,7 +210,7 @@ void RayTaskBlock::compute()
                 break;
 
             // sample each corner of the pixel and the center then average
-            if (settings.useSuperSampling) {
+            if (settings.useSuperSampling) { // not adaptive yet
                 tl = rayTrace(x + m_x + 0.0f, y + m_y + 0.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
                 tr = rayTrace(x + m_x + 1.0f, y + m_y + 0.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
                 bl = rayTrace(x + m_x + 0.0f, y + m_y + 1.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
@@ -234,8 +228,6 @@ void RayTaskBlock::compute()
 
             i++;
         }
-//        assert(y < 3);
-//        cout << i << endl;
     }
     emit doneDrawing(m_pix);
 }

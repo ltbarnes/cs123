@@ -340,9 +340,6 @@ void MainWindow::fileOpen()
             CS123XmlSceneParser parser(file.toLatin1().data());
             if (parser.parse())
             {
-//                if (m_rayScene)
-//                    delete m_rayScene;
-//                m_rayScene = new RayScene();
 
                 SceneviewScene *scene = new SceneviewScene;
                 if (m_canvas3D->isInitialized()) scene->init();
@@ -443,17 +440,13 @@ void MainWindow::renderImage()
         ui->rayRenderButton->setHidden(true);
         ui->rayStopRenderingButton->setHidden(false);
 
-        // TODO: Set up RayScene from glScene and call ui->canvas2D->setScene()
-        cout << "old: " << m_oldScene << endl;
-        cout << "scene: " << glScene << endl;
-
+        // Set up RayScene from glScene and call ui->canvas2D->setScene()
         if (m_oldScene != glScene || !m_rayScene) {
             m_rayScene = new RayScene();
             m_oldScene = glScene;
             m_rayScene->transferSceneData(glScene);
             ui->canvas2D->setScene(m_rayScene);
         }
-
 
         // Render the image
         QSize activeTabSize = ui->tabWidget->currentWidget()->size();

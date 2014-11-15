@@ -20,7 +20,15 @@ DESIGN
 		When super sampling is selected samples are taken from each corner of the pixel in addition to the middle point then averaged together.
 
 
+	Multithreading:
+		Rows of of the 2D canvas are calculated in a RayTask object which extends QObject. Normally one RayTask operates on the main thread until it finishes then a new RayTask is created and the process continues. When multithreading is selected multiple RayTasks are created and run using QtConcurrent::map and monitored with a QFutureWatcher object. As the threads finish running, signals are sent to the canvas to repaint the image and to the window to reset the buttons.
+
+
+	Shapes and Orbit Cam:
+		The base class Scene for OpenGLScene was modified so both ShapesScene and SceneviewScene contain the same basic data structures. The Orbit cam was modified to include a getScaleMatrix() method so ray tracing should work on the shapes scene and when using the orbit cam.
+
+
 BUGS:
 	
-	
+	I'm sure there are plenty out there with these threads poking around but I haven't found any big ones yet.
 	

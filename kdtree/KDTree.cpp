@@ -55,7 +55,8 @@ QList<KDElement *> KDTree::checkIntersections(glm::vec4 p, glm::vec4 d, KDNode *
 
 void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
 {
-    if (elements.size() <= 1 || depth >= 24) {
+    // base case
+    if (elements.size() <= 1 || depth >= 21) {
         parent->setElements(elements);
         parent->setLeftChild(NULL);
         parent->setRightChild(NULL);
@@ -63,7 +64,6 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     }
 
     int dim = depth % 3;
-    assert(dim >= 0 && dim < 3);
 
     int n = elements.size();
     glm::vec3 leftMax, rightMin;
@@ -71,8 +71,6 @@ void KDTree::buildTree(int depth, QList<KDElement *> elements, KDNode *parent)
     // number of shapes in each child
     int numLeft = 0;
     int numRight = n;
-
-    qSort(elements.begin(), elements.end(), PosLessThan(dim));
 
     QList<KDElement *> mins = elements;
     QList<KDElement *> maxs = elements;

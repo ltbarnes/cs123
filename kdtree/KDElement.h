@@ -6,7 +6,6 @@
 class KDElement
 {
 public:
-    friend class PosLessThan; // sorts based on position
     friend class MinLessThan; // sorts based on min coordinates
     friend class MaxLessThan; // sorts based on max coordinates
 
@@ -31,26 +30,13 @@ protected:
 };
 
 /*
- * The following 3 classes are essentially the same but each one
- * overloads the operator in a slightly different way. They all
+ * The following two classes are essentially the same but each one
+ * overloads the operator in a slightly different way. They both
  * compare the corresponding coordinates based on a specified dimension.
  *
- * PosLessThan  -   compares center position
  * MinLessThan  -   compares minimum coordinates
  * MaxLessThan  -   compares maximum coordinates
  */
-class PosLessThan
-{
-public:
-    PosLessThan(int dimension);
-    virtual ~PosLessThan();
-    bool operator()(const KDElement *left, const KDElement *right) const;
-
-private:
-    int m_dimension;
-};
-
-
 class MinLessThan
 {
 public:
