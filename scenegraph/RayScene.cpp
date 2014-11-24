@@ -15,7 +15,10 @@
 #include <QObject>
 #include "moc_RayScene.cpp"
 #include "mainwindow.h"
+#include <QtSerialPort>
+#include <QColor>
 
+#define RECURSION_LIMIT 5
 #define BLOCK_HEIGHT 10
 
 using namespace std;
@@ -50,7 +53,7 @@ RayScene::~RayScene()
     m_kdes.clear();
 
     // need both because m_tree stores repeat elements if shapes overlap an AABB
-     delete m_tree;
+    delete m_tree;
 
     for (int i = 0; i < m_tasks.size(); i++) {
         delete m_tasks.at(i);
@@ -95,7 +98,10 @@ void RayScene::transferSceneData(Scene *scene)
     for (i = 0; i < n; i++) {
         this->addPrimitive(*(scene->getPrimitive(i)), scene->getMatrix(i), false);
         e = m_elements.at(i);
-
+        if (e->primitive->material.textureMap->isUsed) {
+            if (!addTexture(QString::fromStdString(e->primitive->material.textureMap->filename)))
+                e->primitive->material.textureMap->isUsed = false;
+        }
         m_primShapes.value(e->primitive->type)->getBounds(&min, &max, e->trans);
 
         m_kdes.append(new KDElement(min, max, pos, e));
@@ -153,6 +159,7 @@ void RayScene::render(MainWindow *window, Canvas2D *canvas, Camera *camera, int 
     }
 
     task = new RayTaskBlock(this, canvas, 0, y, width, height - y, width, height, p_eye, M_ftw);
+//    task = new RayTaskBlock(this, canvas, 449, 349, 1, 1, width, height, p_eye, M_ftw);
 
     if (settings.useMultiThreading) {
         m_tasks.append(task);
@@ -171,6 +178,25 @@ void RayScene::render(MainWindow *window, Canvas2D *canvas, Camera *camera, int 
     }
 
     QCoreApplication::processEvents();
+}
+
+
+bool RayScene::addTexture(const QString &filename)
+{
+    // make sure file exists
+    QFile file(filename);
+    if (!file.exists())
+        return false;
+
+    if (m_textures.contains(filename))
+        return true;
+
+    // load file into memory
+    QImage image;
+    image.load(file.fileName());
+    image = image.mirrored(false, true);
+    m_textures.insert(filename, image);
+    return true;
 }
 
 
@@ -202,7 +228,7 @@ void RayTaskBlock::compute()
 
     int i;
     for (int y = 0; y < m_blockHeight; y++) {
-        i = (m_y + y) * m_imageWidth;
+        i = (m_y + y) * m_imageWidth + m_x;
 
         for (int x = 0; x < m_blockWidth; x++) {
 
@@ -226,9 +252,19 @@ void RayTaskBlock::compute()
             pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
             pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
 
+//            cout << "FINAL: " << endl;
+//            cout << (int)pix[i].r << ", " << (int)pix[i].g << ", " << (int)pix[i].b << endl;
+
             i++;
         }
     }
+//    int y = 349;
+//    int x = 449;
+//    i = y * m_imageWidth + x;
+
+//    pix[i].r = 255;
+//    pix[i].g = 255;
+//    pix[i].b = 255;
     emit doneDrawing(m_pix);
 }
 
@@ -240,6 +276,16 @@ glm::vec3 RayTaskBlock::rayTrace(float x, float y, float xmax, float ymax, glm::
     glm::vec4 farWorld = M_ftw * farFilm;
     glm::vec4 d_world = glm::normalize(farWorld - p_eye);
 
+    return raycursion(p_eye, d_world, 0);
+}
+
+
+glm::vec3 RayTaskBlock::raycursion(glm::vec4 p_world, glm::vec4 d_world, int depth)
+{
+    // check depth then increment
+    if (depth >= RECURSION_LIMIT)
+        return glm::vec3();
+
     glm::vec4 p, d;
     glm::mat4 M_inv;
     int bestIndex = -1;
@@ -247,16 +293,16 @@ glm::vec3 RayTaskBlock::rayTrace(float x, float y, float xmax, float ymax, glm::
     glm::vec4 nt;
     RayShape *shape;
 
-//    QList<KDElement *> kdes = m_kdes;
-    QList<KDElement *> kdes = m_scene->m_tree->getIntersections(p_eye, d_world);
+    //    QList<KDElement *> kdes = m_kdes;
+    QList<KDElement *> kdes = m_scene->m_tree->getIntersections(p_world, d_world);
 
     // iterate through all necessary shapes and check for the shortest intersection distance
     int num_kdelements = kdes.size();
     for (int i = 0; i < num_kdelements; i++) {
 
         // get p and d in object space
-        M_inv = glm::inverse(kdes.at(i)->getTrans());
-        p = M_inv * p_eye;
+        M_inv = kdes.at(i)->getInv();
+        p = M_inv * p_world;
         d = M_inv * d_world;
 
         // check for intersections in shape space
@@ -265,7 +311,7 @@ glm::vec3 RayTaskBlock::rayTrace(float x, float y, float xmax, float ymax, glm::
             nt = shape->intersects(p, d);
 
             assert(nt.w >= 0);
-            if (nt.w < bestT.w) {
+            if (nt.w < bestT.w && !EQ(nt.w, 0.f)) {
                 bestT = nt;
                 bestIndex = i;
             }
@@ -277,22 +323,41 @@ glm::vec3 RayTaskBlock::rayTrace(float x, float y, float xmax, float ymax, glm::
         CS123ScenePrimitive *prim = kdes.at(bestIndex)->getPrimitive();
         shape = m_scene->m_primShapes.value(prim->type);
 
-        glm::vec4 point = p_eye + bestT.w * d_world;
+        glm::vec4 point = p_world + bestT.w * d_world;
 
-
+        // compute world normal
         glm::vec4 n = glm::vec4(glm::normalize(
                         glm::transpose(glm::inverse(
                             glm::mat3(kdes.at(bestIndex)->getTrans())))
                                     * glm::vec3(bestT)), 0);
 
-        return calcColor(prim, point, n);
+        // calculate texture uv coordinates
+        glm::vec2 uv = glm::vec2(-1); // no texture
+
+        if (settings.useTextureMapping) {
+            CS123SceneMaterial &mat = prim->material;
+            if (mat.textureMap->isUsed && mat.blend) {
+                bestT.w = 0.f;
+                uv = shape->getUV(kdes.at(bestIndex)->getInv() * point, bestT);
+            }
+        }
+
+        if (settings.useReflection) {
+            glm::vec4 reflection = glm::normalize(2.f * n * glm::dot(n, -d_world) + d_world);
+            CS123SceneMaterial &mat = prim->material;
+            glm::vec3 refl = glm::vec3(mat.cReflective.r, mat.cReflective.g, mat.cReflective.b);
+            return glm::min(glm::vec3(1.f), calcColor(prim, point, n, p_world, uv) + refl * raycursion(point, reflection, depth + 1));
+        }
+
+        return calcColor(prim, point, n, p_world, uv);
     }
 
     return glm::vec3();
+
 }
 
 
-glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n)
+glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n, glm::vec4 eye, glm::vec2 uv)
 {
     CS123SceneLightData *light;
     CS123SceneMaterial &mat = prim->material;
@@ -303,38 +368,118 @@ glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, gl
     glm::vec3 color = glm::vec3();
     glm::vec3 amb = glm::vec3(mat.cAmbient.r, mat.cAmbient.g, mat.cAmbient.b);
     glm::vec3 diff = glm::vec3(mat.cDiffuse.r, mat.cDiffuse.g, mat.cDiffuse.b);
+    glm::vec3 spec = glm::vec3(mat.cSpecular.r, mat.cSpecular.g, mat.cSpecular.b);
 
-    glm::vec3 coeff;
+    glm::vec3 diffCalc;
+    glm::vec3 specCalc;
     glm::vec4 pToL;
+    glm::vec4 reflection;
+    glm::vec4 pToEye;
+    float dist;
+    float att;
     float nDotL;
 
     // sum from the lighting equation
     for (int i = 0; i < num_lights; i++) {
         light = m_scene->m_lights.at(i);
 
+        pToEye = eye - point;
+
         // light direction vector
-        if (light->type == LIGHT_POINT)
+        switch (light->type) {
+        case LIGHT_POINT:
             pToL = glm::normalize(light->pos - point);
-        else if (light->type == LIGHT_DIRECTIONAL)
+            break;
+        case LIGHT_DIRECTIONAL:
             pToL = -glm::normalize(light->dir);
+            break;
+        case LIGHT_SPOT:
+            break;
+        case LIGHT_AREA:
+            break;
+        }
 
-        // dot product of normal and light vector
-        nDotL = std::max(0.f, glm::dot(n, pToL));
+        glm::vec4 bestT = glm::vec4(0.f, 0.f, 0.f, std::numeric_limits<float>::infinity());
+        RayShape *shape;
 
-        // diffuse coefficient times dot product
-        coeff.r = diff.r * nDotL;
-        coeff.g = diff.g * nDotL;
-        coeff.b = diff.b * nDotL;
+        // check intersections
+        if (settings.useShadows) {
+            glm::vec4 p, d;
+            glm::mat4 M_inv;
+            glm::vec4 nt;
 
-        // color of the light
-        color.r += light->color.r * coeff.r;
-        color.g += light->color.g * coeff.g;
-        color.b += light->color.b * coeff.b;
+            QList<KDElement *> kdes = m_scene->m_tree->getIntersections(point, pToL);
+
+            // iterate through all necessary shapes and check for the shortest intersection distance
+            int num_kdelements = kdes.size();
+            for (int i = 0; i < num_kdelements; i++) {
+
+                // don't need to check current shape
+                if (kdes.at(i)->getPrimitive() == prim)
+                    continue;
+
+                // get p and d in object space
+                M_inv = kdes.at(i)->getInv();
+                p = M_inv * point;
+                d = M_inv * pToL;
+
+                // check for intersections in shape space
+                shape = m_scene->m_primShapes.value(kdes.at(i)->getPrimitive()->type);
+                if (shape) {
+                    nt = shape->intersects(p, d);
+
+                    assert(nt.w >= 0);
+                    if (nt.w < bestT.w && !EQ(nt.w, 0.f)) {
+                        bestT = nt;
+                    }
+                }
+            }
+        }
+
+        // if no intersection occurred calculate the non ambient lighting
+        if (bestT.w == std::numeric_limits<float>::infinity()) {
+
+            // dot product of normal and light vector
+            nDotL = std::max(0.f, glm::dot(n, pToL));
+
+            // calc texture
+            if (uv.x != -1) {
+                QImage image = m_scene->m_textures.value(QString::fromStdString(mat.textureMap->filename));
+                glm::vec2 st = glm::vec2(uv.x * mat.textureMap->repeatU * image.width(), uv.y * mat.textureMap->repeatV * image.height());
+
+                int r = ((int) st.y) % image.height();
+                int c = ((int) st.x) % image.width();
+
+                QColor clr = QColor::fromRgb(image.pixel(c, r));
+                diffCalc = mat.blend * glm::vec3(clr.redF(), clr.greenF(), clr.blueF()) + (1.f - mat.blend) * diff;
+                amb *= glm::vec3(clr.redF(), clr.greenF(), clr.blueF());
+            }
+
+            // diffuse coefficient times dot product
+            diffCalc = diffCalc * nDotL;
+
+            // reflection vector
+            reflection = 2.f * glm::dot(pToL, n) * n - pToL;
+
+            // specular calculation
+            specCalc = glm::max(glm::vec3(), spec * std::pow(glm::max(0.f, glm::dot(glm::normalize(reflection), glm::normalize(pToEye))), mat.shininess));
+
+            // attenuation
+            if (light->type != LIGHT_DIRECTIONAL) {
+                dist = glm::distance(light->pos, point);
+                att = std::min(1.f, 1.f / light->function.x + light->function.y * dist + light->function.z * dist * dist);
+            } else {
+                att = 1.f;
+            }
+
+            color.r += light->color.r * (diffCalc.r + specCalc.r) * att;
+            color.g += light->color.g * (diffCalc.g + specCalc.g) * att;
+            color.b += light->color.b * (diffCalc.b + specCalc.b) * att;
+        }
     }
+
     // add the ambient lighting
-    color.r = std::min(1.f, color.r + amb.r);
-    color.g = std::min(1.f, color.g + amb.g);
-    color.b = std::min(1.f, color.b + amb.b);
+    color = glm::min(glm::vec3(1.f), color + amb);
 
     return color;
 }

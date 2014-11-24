@@ -45,7 +45,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_rayScene = NULL;
     m_oldScene = NULL;
-    m_oldShape = settings.shapeType;
 
 #define SETUP_ACTION(dock, key) \
     actions.push_back(ui->dock->toggleViewAction()); \
@@ -285,11 +284,6 @@ void MainWindow::settingsChanged()
 {
     ui->canvas2D->settingsChanged();
     m_canvas3D->settingsChanged();
-
-    if (settings.shapeType != m_oldShape) {
-        m_oldShape = settings.shapeType;
-        m_rayScene = NULL;
-    }
 }
 
 void MainWindow::setAllRayFeatures(bool checked)
@@ -439,6 +433,10 @@ void MainWindow::renderImage()
         // Swap the "render" button for the "stop rendering" button
         ui->rayRenderButton->setHidden(true);
         ui->rayStopRenderingButton->setHidden(false);
+
+        if (!settings.useSceneviewScene) {
+            m_rayScene = NULL;
+        }
 
         // Set up RayScene from glScene and call ui->canvas2D->setScene()
         if (m_oldScene != glScene || !m_rayScene) {

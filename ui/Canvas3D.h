@@ -3,6 +3,7 @@
 
 #include "SupportCanvas3D.h"
 #include "CS123Common.h"
+#include <QtSerialPort>
 
 /**
  * @class Canvas3D

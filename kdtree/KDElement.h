@@ -18,6 +18,7 @@ public:
     glm::vec4 getPos();
     CS123ScenePrimitive *getPrimitive();
     glm::mat4 getTrans();
+    glm::mat4 getInv();
 
 protected:
     // minimum, maximum, and center coordinates

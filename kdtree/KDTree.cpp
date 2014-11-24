@@ -41,8 +41,9 @@ QList<KDElement *> KDTree::getIntersections(glm::vec4 p, glm::vec4 d)
 
 QList<KDElement *> KDTree::checkIntersections(glm::vec4 p, glm::vec4 d, KDNode *node)
 {
-    QList<KDElement *> elements = node->getElements();
+    QList<KDElement *> elements;
     if (node->intersectsAABB(p, d)) {
+        elements = node->getElements();
         if (node->hasLeftChild())
             elements.append(checkIntersections(p, d, node->getLeftChild()));
         if (node->hasRightChild())

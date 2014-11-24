@@ -30,3 +30,9 @@ void RayShape::getBounds(glm::vec3 *min, glm::vec3 *max, glm::mat4 trans)
     *max = glm::vec3(glm::max(blb, glm::max(blf, glm::max(brb, glm::max(brf, glm::max(tlb, glm::max(tlf, glm::max(trb, trf))))))));
 }
 
+
+glm::vec2 RayShape::getUV(glm::vec4 point, glm::vec4 n)
+{
+    return glm::vec2();
+}
+

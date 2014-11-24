@@ -178,11 +178,13 @@ void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::m
         setColor(&mat.cDiffuse, &material.cDiffuse, m_global.kd);
         setColor(&mat.cSpecular, &material.cSpecular, m_global.ks);
         setColor(&mat.cTransparent, &material.cTransparent, m_global.kt);
+        setColor(&mat.cReflective, &material.cReflective, m_global.ks);
     } else {
         setColor(&mat.cAmbient, &material.cAmbient, 1.f);
         setColor(&mat.cDiffuse, &material.cDiffuse, 1.f);
         setColor(&mat.cSpecular, &material.cSpecular, 1.f);
         setColor(&mat.cTransparent, &material.cTransparent, 1.f);
+        setColor(&mat.cReflective, &material.cReflective, 1.f);
     }
 
     mat.blend = material.blend;
@@ -193,6 +195,7 @@ void Scene::addPrimitive(const CS123ScenePrimitive &scenePrimitive, const glm::m
     SceneElement *element = new SceneElement();
     element->primitive = sp;
     element->trans = matrix;
+    element->inv = glm::inverse(matrix);
     m_elements.append(element);
 }
 

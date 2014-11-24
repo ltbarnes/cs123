@@ -17,6 +17,9 @@ public:
      */
     virtual glm::vec4 intersects(glm::vec4 p, glm::vec4 d) = 0;
 
+//    virtual glm::vec2 getUV(glm::vec4 point, glm::vec4 n) = 0;
+    virtual glm::vec2 getUV(glm::vec4 point, glm::vec4 n);
+
     void getBounds(glm::vec3 *min, glm::vec3 *max, glm::mat4 trans);
 };
 

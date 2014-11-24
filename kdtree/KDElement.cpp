@@ -48,6 +48,12 @@ glm::mat4 KDElement::getTrans()
 }
 
 
+glm::mat4 KDElement::getInv()
+{
+    return m_element->inv;
+}
+
+
 // ////////////////MinLessThan////////////////// //
 
 MinLessThan::MinLessThan(int dimension)

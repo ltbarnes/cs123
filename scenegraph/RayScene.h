@@ -36,6 +36,8 @@ public:
     // based on intersections at that point and paints the provided canvas.
     void render(MainWindow *window, Canvas2D *canvas, Camera *camera, int width, int height);
 
+    bool addTexture(const QString &filename);
+
     // stops the rendering after the current canvas pixel row is finished.
     void stopRendering();
 
@@ -43,6 +45,7 @@ protected:
 
     // maps shape types to actual shape instances so multiple shapes of the same type aren't stored
     QHash<PrimitiveType, RayShape*> m_primShapes;
+    QHash<QString, QImage> m_textures;
     QList<KDElement *> m_kdes;// doesn't need to be global after kdtree is working
 
     // kd tree to speed up search times.
@@ -76,8 +79,11 @@ private:
     // performs a ray tracing algorithm at the specified point.
     glm::vec3 rayTrace(float x, float y, float xmax, float ymax, glm::vec4 p_eye, glm::mat4 M_ftw);
 
+    // recursively shoots rays into the scene to better estimate lighting
+    glm::vec3 raycursion(glm::vec4 p_world, glm::vec4 d_world, int depth);
+
     // calculates the color of a point based on the lighting and materials of the shape
-    glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n);
+    glm::vec3 calcColor(CS123ScenePrimitive *prim, glm::vec4 point, glm::vec4 n, glm::vec4 eye, glm::vec2 uv);
 
     RayScene *m_scene;
     Canvas2D *m_pix;

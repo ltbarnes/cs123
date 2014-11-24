@@ -36,10 +36,11 @@ ShapesScene::ShapesScene()
 
     // Use snow texture
     mat.textureMap = new CS123SceneFileMap();
-    mat.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
+    mat.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
     mat.textureMap->isUsed = false;
     mat.textureMap->repeatU = 1;
     mat.textureMap->repeatV = 1;
+    mat.blend = 0.5f;
 
     mat.bumpMap = new CS123SceneFileMap();
     mat.bumpMap->filename = "";
@@ -65,17 +66,14 @@ ShapesScene::ShapesScene()
                 settings.shapeParameter3
                 );
 
-//    m_shapes.clear();
     m_lights.clear();
-//    m_trans.clear();
     m_elements.clear();
 
     SceneElement *element = new SceneElement();
     element->primitive = prim;
     element->trans = glm::mat4();
-//    m_shapes.append(prim);
+    element->inv = glm::mat4();
     m_lights.append(light);
-//    m_trans.append(glm::mat4());
     m_elements.append(element);
 
 

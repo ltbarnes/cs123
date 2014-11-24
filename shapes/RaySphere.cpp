@@ -72,3 +72,11 @@ int RaySphere::findT(glm::vec4 p, glm::vec4 d, float *t1, float *t2)
     return 2;
 }
 
+
+glm::vec2 RaySphere::getUV(glm::vec4 point, glm::vec4 n)
+{
+    float y = std::atan2(glm::sqrt(n.x * n.x + n.z * n.z), n.y) / M_PI;
+    float x = (std::atan2(-n.z, -n.x) + M_PI) / (2.f * M_PI);
+    return glm::vec2(1.f - x, 1.f - y);
+}
+

@@ -11,6 +11,7 @@ struct SceneElement
 {
     CS123ScenePrimitive *primitive;
     glm::mat4 trans;
+    glm::mat4 inv;
 };
 
 /**
@@ -55,8 +56,6 @@ protected:
     CS123SceneGlobalData m_global;
     QList<CS123SceneLightData*> m_lights;
     QList<SceneElement *> m_elements;
-//    QList<CS123ScenePrimitive*> m_shapes;
-//    QList<glm::mat4> m_trans;
 
 private:
     void nodecursion(Scene *scene, CS123SceneNode *node, glm::mat4 trans);

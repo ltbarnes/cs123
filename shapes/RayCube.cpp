@@ -51,3 +51,37 @@ glm::vec4 RayCube::intersects(glm::vec4 p, glm::vec4 d)
     else
         return glm::vec4(0, 0, 0, std::numeric_limits<float>::infinity());
 }
+
+
+glm::vec2 RayCube::getUV(glm::vec4 point, glm::vec4 n)
+{
+    n = glm::normalize(n);
+
+    if (EQ(n.z, 1.f)) {
+        glm::vec2 val = glm::vec2(point);
+        return val + glm::vec2(0.5f);
+    }
+    if (EQ(n.z, -1.f)) {
+        glm::vec2 val = glm::vec2(point);
+        return glm::vec2(0.5f - val.x, val.y + 0.5f);
+    }
+    if (EQ(n.x, 1.f)) {
+        glm::vec2 val = glm::vec2(point.z, point.y);
+        return glm::vec2(0.5f - val.x, val.y + 0.5f);
+    }
+    if (EQ(n.x, -1.f)) {
+        glm::vec2 val = glm::vec2(point.z, point.y);
+        return val + glm::vec2(0.5f);
+    }
+    if (EQ(n.y, 1.f)) {
+        glm::vec2 val = glm::vec2(point.x, point.z);
+        return glm::vec2(0.5f + val.x, 0.5f - val.y);
+    }
+    if (EQ(n.y, -1.f)) {
+        glm::vec2 val = glm::vec2(point.x, point.z);
+        return val + glm::vec2(0.5f);
+    }
+    return glm::vec2(-1.f);
+}
+
+
