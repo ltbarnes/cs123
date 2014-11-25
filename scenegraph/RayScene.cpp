@@ -15,7 +15,6 @@
 #include <QObject>
 #include "moc_RayScene.cpp"
 #include "mainwindow.h"
-#include <QtSerialPort>
 #include <QColor>
 
 #define RECURSION_LIMIT 5           // number of reflection rays
@@ -503,6 +502,7 @@ glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, gl
             // diffuse coefficient times dot product
             diffCalc = diffCalc * nDotL;
 
+            // dist and att correspond to angle and penumbra here
             if (light->type == LIGHT_SPOT && settings.useSpotLights) {
                 dist = glm::dot(glm::normalize(light->dir), -pToL);
                 att = light->penumbra * 2.f*M_PI / 360.f;

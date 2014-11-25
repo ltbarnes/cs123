@@ -6,7 +6,6 @@
 #include "OrbitingCamera.h"
 #include "ResourceLoader.h"
 #include "Settings.h"
-#include <QtSerialPort>
 
 Canvas3D::Canvas3D(QGLFormat format, QWidget *parent) : SupportCanvas3D(format, parent)
 {
