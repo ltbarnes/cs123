@@ -18,9 +18,9 @@
 #include <QtSerialPort>
 #include <QColor>
 
-#define RECURSION_LIMIT 5
-#define BLOCK_HEIGHT 10
-#define SAMPLE_THRESHOLD 0.0002f
+#define RECURSION_LIMIT 5           // number of reflection rays
+#define BLOCK_HEIGHT 10             // number of rows in each thread
+#define SAMPLE_THRESHOLD 0.0002f    // variance threshold for super sampling
 
 using namespace std;
 
@@ -162,7 +162,6 @@ void RayScene::render(MainWindow *window, Canvas2D *canvas, Camera *camera, int 
     }
 
     task = new RayTaskBlock(this, canvas, 0, y, width, height - y, width, height, p_eye, M_ftw);
-//    task = new RayTaskBlock(this, canvas, 313, 191, 1, 1, width, height, p_eye, M_ftw);
 
     if (settings.useMultiThreading) {
         m_tasks.append(task);

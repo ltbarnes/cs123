@@ -1217,7 +1217,7 @@
         <item>
          <widget class="QCheckBox" name="rayAntiAliasing">
           <property name="text">
-           <string>Anti-aliasing</string>
+           <string>Visualize Adaptive Samples</string>
           </property>
          </widget>
         </item>
