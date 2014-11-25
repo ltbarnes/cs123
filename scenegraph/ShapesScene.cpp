@@ -36,7 +36,8 @@ ShapesScene::ShapesScene()
 
     // Use snow texture
     mat.textureMap = new CS123SceneFileMap();
-    mat.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
+    mat.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
+//    mat.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
     mat.textureMap->isUsed = false;
     mat.textureMap->repeatU = 1;
     mat.textureMap->repeatV = 1;

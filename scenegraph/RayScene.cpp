@@ -20,6 +20,7 @@
 
 #define RECURSION_LIMIT 5
 #define BLOCK_HEIGHT 10
+#define SAMPLE_THRESHOLD 0.0002f
 
 using namespace std;
 
@@ -159,7 +160,7 @@ void RayScene::render(MainWindow *window, Canvas2D *canvas, Camera *camera, int 
     }
 
     task = new RayTaskBlock(this, canvas, 0, y, width, height - y, width, height, p_eye, M_ftw);
-//    task = new RayTaskBlock(this, canvas, 449, 349, 1, 1, width, height, p_eye, M_ftw);
+//    task = new RayTaskBlock(this, canvas, 313, 191, 1, 1, width, height, p_eye, M_ftw);
 
     if (settings.useMultiThreading) {
         m_tasks.append(task);
@@ -223,7 +224,7 @@ RayTaskBlock::~RayTaskBlock()
 
 void RayTaskBlock::compute()
 {
-    glm::vec3 color, tl, tr, bl, br;
+    glm::vec3 color, tl, tr, bl, br, variance;
     BGRA *pix = m_pix->data();
 
     int i;
@@ -235,16 +236,49 @@ void RayTaskBlock::compute()
             if (m_scene->m_stopRendering)
                 break;
 
-            // sample each corner of the pixel and the center then average
-            if (settings.useSuperSampling) { // not adaptive yet
-                tl = rayTrace(x + m_x + 0.0f, y + m_y + 0.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
-                tr = rayTrace(x + m_x + 1.0f, y + m_y + 0.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
-                bl = rayTrace(x + m_x + 0.0f, y + m_y + 1.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
-                br = rayTrace(x + m_x + 1.0f, y + m_y + 1.0f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
-                color = rayTrace(x + m_x + 0.5f, y + m_y + 0.5f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
-                color = (tl + tr + bl + br + color) / 5.f;
+            // take four samples from the pixel and calculate the variance. If the variance is above
+            // the threshold take more samples depending on the settings.numSuperSamples variable.
+            if (settings.useSuperSampling) {
+                // 4 initial samples
+                tl = rayTrace(x + m_x + 0.2f, y + m_y + 0.3f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                tr = rayTrace(x + m_x + 0.7f, y + m_y + 0.2f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                bl = rayTrace(x + m_x + 0.3f, y + m_y + 0.8f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                br = rayTrace(x + m_x + 0.8f, y + m_y + 0.7f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                color = (tl + tr + bl + br) / 4.f;
 
-            } else { // sample the center point of the pixel
+                // variance calculation
+                variance = (tl - color) * (tl - color);
+                variance += (tr - color) * (tr - color);
+                variance += (bl - color) * (bl - color);
+                variance += (br - color) * (br - color);
+                variance /= 4.f;
+
+                // take more samples if necessary
+                int samples2 = settings.numSuperSamples * settings.numSuperSamples - 4;
+                if (samples2 > 4 && (variance.r > SAMPLE_THRESHOLD || variance.g > SAMPLE_THRESHOLD || variance.b > SAMPLE_THRESHOLD)) {
+
+                    // this highlights the pixels that would be supersampled based on variance
+                    if (settings.useAntiAliasing)
+                        color = glm::vec3(1.f);
+
+                    else {
+                        color = (tl + tr + bl + br);
+
+                        // uniform randomness
+                        default_random_engine gen;
+                        uniform_int_distribution<int> dist(0, 10);
+
+                        float u, v;
+                        for (int i = 0; i < samples2; i++) {
+                            u = dist(gen) / 10.f;
+                            v = dist(gen) / 10.f;
+                            color += rayTrace(x + m_x + u, y + m_y + v, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+                        }
+                        color /= glm::max(samples2 + 4, 4);
+                    }
+                }
+
+            } else { // (no super sampling) sample the center point of the pixel
                 color = rayTrace(x + m_x + 0.5f, y + m_y + 0.5f, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
             }
 
@@ -258,8 +292,8 @@ void RayTaskBlock::compute()
             i++;
         }
     }
-//    int y = 349;
-//    int x = 449;
+//    int y = 191;
+//    int x = 313;
 //    i = y * m_imageWidth + x;
 
 //    pix[i].r = 255;
@@ -388,13 +422,30 @@ glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, gl
         // light direction vector
         switch (light->type) {
         case LIGHT_POINT:
+            if (!settings.usePointLights)
+                return glm::min(glm::vec3(1.f), amb);
+
             pToL = glm::normalize(light->pos - point);
             break;
+
         case LIGHT_DIRECTIONAL:
+            if (!settings.useDirectionalLights)
+                return glm::min(glm::vec3(1.f), amb);
+
             pToL = -glm::normalize(light->dir);
             break;
+
         case LIGHT_SPOT:
+            if (!settings.useSpotLights)
+                return glm::min(glm::vec3(1.f), amb);
+
+            pToL = glm::normalize(light->pos - point);
+
+            if (glm::dot(glm::normalize(light->dir), -pToL) <= glm::cos((light->angle + light->penumbra) * 2.f*M_PI / 360.f))
+                continue;
+
             break;
+
         case LIGHT_AREA:
             break;
         }
@@ -453,10 +504,18 @@ glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, gl
                 QColor clr = QColor::fromRgb(image.pixel(c, r));
                 diffCalc = mat.blend * glm::vec3(clr.redF(), clr.greenF(), clr.blueF()) + (1.f - mat.blend) * diff;
                 amb *= glm::vec3(clr.redF(), clr.greenF(), clr.blueF());
+            } else {
+                diffCalc = diff;
             }
 
             // diffuse coefficient times dot product
             diffCalc = diffCalc * nDotL;
+
+            if (light->type == LIGHT_SPOT && settings.useSpotLights) {
+                dist = glm::dot(glm::normalize(light->dir), -pToL);
+                att = light->penumbra * 2.f*M_PI / 360.f;
+                diffCalc *= glm::max(0.f, glm::pow((att - glm::acos(dist)) / att, 0.5f));
+            }
 
             // reflection vector
             reflection = 2.f * glm::dot(pToL, n) * n - pToL;
@@ -467,7 +526,7 @@ glm::vec3 RayTaskBlock::calcColor(CS123ScenePrimitive *prim, glm::vec4 point, gl
             // attenuation
             if (light->type != LIGHT_DIRECTIONAL) {
                 dist = glm::distance(light->pos, point);
-                att = std::min(1.f, 1.f / light->function.x + light->function.y * dist + light->function.z * dist * dist);
+                att = std::min(1.f, 1.f / (light->function.x + light->function.y * dist + light->function.z * dist * dist));
             } else {
                 att = 1.f;
             }
