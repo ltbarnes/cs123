@@ -60,6 +60,8 @@ RayScene::~RayScene()
         delete m_tasks.at(i);
     }
     m_tasks.clear();
+
+//    QList<QString> keys = m_textures.keys();
 }
 
 
@@ -201,10 +203,10 @@ bool RayScene::addTexture(const QString &filename)
 }
 
 
-RayTaskBlock::RayTaskBlock(RayScene *scene, Canvas2D *pix, int x, int y, int bw, int bh, int iw, int ih, glm::vec4 p_eye, glm::mat4 M_ftw)
+RayTaskBlock::RayTaskBlock(RayScene *scene, Canvas2D *canvas, int x, int y, int bw, int bh, int iw, int ih, glm::vec4 p_eye, glm::mat4 M_ftw)
 {
     m_scene = scene;
-    m_pix = pix;
+    m_canvas = canvas;
     rect = QRect(x, y, bw, bh);
     m_x = x;
     m_y = y;
@@ -225,7 +227,7 @@ RayTaskBlock::~RayTaskBlock()
 void RayTaskBlock::compute()
 {
     glm::vec3 color, tl, tr, bl, br, variance;
-    BGRA *pix = m_pix->data();
+    BGRA *pix = m_canvas->data();
 
     int i;
     for (int y = 0; y < m_blockHeight; y++) {
@@ -286,20 +288,10 @@ void RayTaskBlock::compute()
             pix[i].g = (unsigned char)(color.g * 255.f + 0.5f);
             pix[i].b = (unsigned char)(color.b * 255.f + 0.5f);
 
-//            cout << "FINAL: " << endl;
-//            cout << (int)pix[i].r << ", " << (int)pix[i].g << ", " << (int)pix[i].b << endl;
-
             i++;
         }
     }
-//    int y = 191;
-//    int x = 313;
-//    i = y * m_imageWidth + x;
-
-//    pix[i].r = 255;
-//    pix[i].g = 255;
-//    pix[i].b = 255;
-    emit doneDrawing(m_pix);
+    emit doneDrawing(m_canvas);
 }
 
 
@@ -310,6 +302,7 @@ glm::vec3 RayTaskBlock::rayTrace(float x, float y, float xmax, float ymax, glm::
     glm::vec4 farWorld = M_ftw * farFilm;
     glm::vec4 d_world = glm::normalize(farWorld - p_eye);
 
+    // recursively calculate colors
     return raycursion(p_eye, d_world, 0);
 }
 

@@ -17,10 +17,17 @@ DESIGN
 	Shapes and Orbit Cam:
 		The base class Scene for OpenGLScene was modified so both ShapesScene and SceneviewScene contain the same basic data structures. The Orbit cam was modified to include a getScaleMatrix() method so ray tracing should work on the shapes scene and when using the orbit cam.
 
+
 #################################### Additions for Ray ###################################
 
-	Ambient Textures:
-		The ambient term is multiplied by the texture value when texture mapping is active to 
+	Raycursion:
+		The rayTrace method in the RayTaskBlock class (part of RayScene) was modified to allow for reflection calculations. After the initial ray is calculated based on the pixel location and camera, the raycursion() method is called to recursively calculate color intensities for reflected rays.
+
+
+
+	Textures:
+		QImages are stored in a QHash with their corresponding filenames as keys. This prevents the same images from being stored multiple times for different objects. To sample the file appropriately each shape has a method getUV(point, normal) which returns the proper uv sampling coordinates for the given point and normal.
+		The ambient term is multiplied by the texture value when texture mapping is active so the texture doesn't disappear in areas where there is no diffuse lighting.
 
 
 Extras:
