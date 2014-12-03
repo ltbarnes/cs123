@@ -9,6 +9,8 @@
 #include "shapes/Torus.h"
 #include "shapes/Ripple.h"
 #include "shapes/RippleSphere.h"
+#include "shapes/musictracker.h"
+#include "shapes/musicsphere.h"
 
 glm::vec4 lightDirection = glm::normalize(glm::vec4(1.f, -1.f, -1.f, 0.f));
 
@@ -27,17 +29,19 @@ ShapesScene::ShapesScene()
 
     // Use a shiny orange material
     memset(&mat, 0, sizeof(CS123SceneMaterial));
-    mat.cAmbient.r = 0.2f;
+    mat.cAmbient.r = 0.1f;
     mat.cAmbient.g = 0.1f;
-    mat.cDiffuse.r = 1.0f;
+    mat.cAmbient.b = 0.2f;
+    mat.cDiffuse.r = 0.5f;
     mat.cDiffuse.g = 0.5f;
+    mat.cDiffuse.b = 1.0f;
     mat.cSpecular.r = mat.cSpecular.g = mat.cSpecular.b = 1;
     mat.shininess = 64;
 
     // Use snow texture
     mat.textureMap = new CS123SceneFileMap();
-    mat.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
-//    mat.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
+//    mat.textureMap->filename = "/course/cs123/data/image/terrain/snow.JPG";
+    mat.textureMap->filename = "/Users/Logan/Documents/course/cs123/data/image/terrain/snow.JPG";
     mat.textureMap->isUsed = false;
     mat.textureMap->repeatU = 1;
     mat.textureMap->repeatV = 1;
@@ -89,11 +93,14 @@ ShapesScene::~ShapesScene()
         delete m_ripplePlane;
     if (m_rippleSphere)
         delete m_rippleSphere;
+    if (m_music)
+        delete m_music;
 }
 
 
 void ShapesScene::updateCurrentShape() {
-    this->updateShape(m_shape);
+    if (m_shape != m_music)
+        this->updateShape(m_shape);
 }
 
 void ShapesScene::init()
@@ -114,11 +121,16 @@ void ShapesScene::init()
                                       settings.shapeParameter2,
                                       settings.shapeParameter3,
                                       0.5f);
+//    m_music = new MusicSphere(settings.shapeParameter1,
+    m_music = new MusicTracker(settings.shapeParameter1,
+                               settings.shapeParameter2,
+                               1.0f, m_shader, m_normalRenderer);
 
     updateShapes();
     this->updateShape(m_square);
     this->updateShape(m_ripplePlane);
     this->updateShape(m_rippleSphere);
+    this->updateShape(m_music);
 
     this->setShape();
 
@@ -160,7 +172,9 @@ void ShapesScene::setShape()
         m_elements.at(0)->primitive->type = PRIMITIVE_TORUS;
         break;
     case SHAPE_SPECIAL_1:
-        m_shape = m_square;
+//        m_shape = m_square;
+//        m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
+        m_shape = m_music;
         m_elements.at(0)->primitive->type = PRIMITIVE_CUBE;
         break;
     case SHAPE_SPECIAL_2:

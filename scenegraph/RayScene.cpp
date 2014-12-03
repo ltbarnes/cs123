@@ -16,6 +16,7 @@
 #include "moc_RayScene.cpp"
 #include "mainwindow.h"
 #include <QColor>
+//#include <random>
 
 #define RECURSION_LIMIT 5           // number of reflection rays
 #define BLOCK_HEIGHT 10             // number of rows in each thread
@@ -262,19 +263,19 @@ void RayTaskBlock::compute()
                         color = glm::vec3(1.f);
 
                     else {
-                        color = (tl + tr + bl + br);
+//                        color = (tl + tr + bl + br);
 
-                        // uniform randomness
-                        default_random_engine gen;
-                        uniform_int_distribution<int> dist(0, 10);
+//                        // uniform randomness
+////                        std::default_random_engine gen;
+////                        std::uniform_int_distribution<int> dist(0, 10);
 
-                        float u, v;
-                        for (int i = 0; i < samples2; i++) {
-                            u = dist(gen) / 10.f;
-                            v = dist(gen) / 10.f;
-                            color += rayTrace(x + m_x + u, y + m_y + v, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
-                        }
-                        color /= glm::max(samples2 + 4, 4);
+//                        float u, v;
+//                        for (int i = 0; i < samples2; i++) {
+//                            u = dist(gen) / 10.f;
+//                            v = dist(gen) / 10.f;
+//                            color += rayTrace(x + m_x + u, y + m_y + v, m_imageWidth, m_imageHeight, m_p_eye, m_M_ftw);
+//                        }
+//                        color /= glm::max(samples2 + 4, 4);
                     }
                 }
 

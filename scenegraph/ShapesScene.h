@@ -61,6 +61,7 @@ private:
     Shape *m_square;
     Shape *m_ripplePlane;
     Shape *m_rippleSphere;
+    Shape *m_music;
 };
 
 #endif // SHAPESSCENE_H
